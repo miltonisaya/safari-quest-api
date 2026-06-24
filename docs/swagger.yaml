@@ -1,4 +1,39 @@
 definitions:
+  pagination.Meta:
+    properties:
+      last_page:
+        type: integer
+      page:
+        type: integer
+      per_page:
+        type: integer
+      search:
+        type: string
+      sort_by:
+        type: string
+      sort_dir:
+        type: string
+      total:
+        type: integer
+    type: object
+  pagination.Result-services_RoleResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/services.RoleResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  pagination.Result-services_UserResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/services.UserResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
   response.CustomApiResponse:
     properties:
       code:
@@ -168,7 +203,32 @@ paths:
       - Auth
   /roles:
     get:
-      description: Return all roles
+      description: Return a paginated, searchable, and sortable list of roles
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: 'Sort column: name, code, created_at, updated_at'
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_dir
+        type: string
       produces:
       - application/json
       responses:
@@ -179,9 +239,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/services.RoleResponse'
-                  type: array
+                  $ref: '#/definitions/pagination.Result-services_RoleResponse'
               type: object
         "500":
           description: Internal Server Error
@@ -345,7 +403,32 @@ paths:
       - Roles
   /users:
     get:
-      description: Return all users
+      description: Return a paginated, searchable, and sortable list of users
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by first name, last name, email, or mobile
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: 'Sort column: first_name, last_name, email, created_at, updated_at'
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_dir
+        type: string
       produces:
       - application/json
       responses:
@@ -356,9 +439,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/services.UserResponse'
-                  type: array
+                  $ref: '#/definitions/pagination.Result-services_UserResponse'
               type: object
         "500":
           description: Internal Server Error
