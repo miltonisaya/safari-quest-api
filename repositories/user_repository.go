@@ -26,8 +26,14 @@ func UserFindByEmail(email string) (models.User, error) {
 	return user, result.Error
 }
 
-func UserCreate(user *models.User) error {
-	return database.GORM_DB.Create(user).Error
+func UserCreate(user *models.User, roles []models.Role) error {
+	return database.GORM_DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Omit("Roles.*").Create(user).Error; err != nil {
+			return err
+		}
+		return tx.Session(&gorm.Session{FullSaveAssociations: false}).
+			Model(user).Association("Roles").Replace(roles)
+	})
 }
 
 func UserUpdate(user *models.User, roles []models.Role) error {
@@ -35,7 +41,8 @@ func UserUpdate(user *models.User, roles []models.Role) error {
 		if err := tx.Save(user).Error; err != nil {
 			return err
 		}
-		return tx.Model(user).Association("Roles").Replace(roles)
+		return tx.Session(&gorm.Session{FullSaveAssociations: false}).
+			Model(user).Association("Roles").Replace(roles)
 	})
 }
 
