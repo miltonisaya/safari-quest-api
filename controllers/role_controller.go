@@ -14,6 +14,15 @@ import (
 
 type RoleController struct{}
 
+// Index godoc
+// @Summary      List roles
+// @Description  Return all roles
+// @Tags         Roles
+// @Produce      json
+// @Success      200 {object} response.CustomApiResponse{data=[]services.RoleResponse}
+// @Failure      500 {object} response.CustomApiResponse
+// @Security     BearerAuth
+// @Router       /roles [get]
 func (controller RoleController) Index(c *gin.Context) {
 	roles, err := services.RoleGetAll()
 	if err != nil {
@@ -23,6 +32,18 @@ func (controller RoleController) Index(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Roles retrieved", roles)
 }
 
+// Show godoc
+// @Summary      Get role
+// @Description  Return a single role by UUID
+// @Tags         Roles
+// @Produce      json
+// @Param        uuid path string true "Role UUID"
+// @Success      200 {object} response.CustomApiResponse{data=services.RoleResponse}
+// @Failure      400 {object} response.CustomApiResponse
+// @Failure      404 {object} response.CustomApiResponse
+// @Failure      500 {object} response.CustomApiResponse
+// @Security     BearerAuth
+// @Router       /roles/{uuid} [get]
 func (controller RoleController) Show(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
@@ -41,6 +62,18 @@ func (controller RoleController) Show(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Role retrieved", authority)
 }
 
+// Create godoc
+// @Summary      Create role
+// @Description  Create a new role
+// @Tags         Roles
+// @Accept       json
+// @Produce      json
+// @Param        body body services.RoleInput true "Role data"
+// @Success      201 {object} response.CustomApiResponse{data=services.RoleResponse}
+// @Failure      400 {object} response.CustomApiResponse
+// @Failure      500 {object} response.CustomApiResponse
+// @Security     BearerAuth
+// @Router       /roles [post]
 func (controller RoleController) Create(c *gin.Context) {
 	var input services.RoleInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -55,6 +88,20 @@ func (controller RoleController) Create(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "Role created", role)
 }
 
+// Update godoc
+// @Summary      Update role
+// @Description  Update an existing role by UUID
+// @Tags         Roles
+// @Accept       json
+// @Produce      json
+// @Param        uuid path string true "Role UUID"
+// @Param        body body services.RoleInput true "Role data"
+// @Success      200 {object} response.CustomApiResponse{data=services.RoleResponse}
+// @Failure      400 {object} response.CustomApiResponse
+// @Failure      404 {object} response.CustomApiResponse
+// @Failure      500 {object} response.CustomApiResponse
+// @Security     BearerAuth
+// @Router       /roles/{uuid} [put]
 func (controller RoleController) Update(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
@@ -78,6 +125,18 @@ func (controller RoleController) Update(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Role updated", role)
 }
 
+// Delete godoc
+// @Summary      Delete role
+// @Description  Soft-delete a role by UUID
+// @Tags         Roles
+// @Produce      json
+// @Param        uuid path string true "Role UUID"
+// @Success      200 {object} response.CustomApiResponse
+// @Failure      400 {object} response.CustomApiResponse
+// @Failure      404 {object} response.CustomApiResponse
+// @Failure      500 {object} response.CustomApiResponse
+// @Security     BearerAuth
+// @Router       /roles/{uuid} [delete]
 func (controller RoleController) Delete(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
