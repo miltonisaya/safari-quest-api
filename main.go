@@ -19,6 +19,10 @@ func main() {
 		log.Fatalf("database connection failed: %v", err)
 	}
 
+	if err := database.RunMigrations(); err != nil {
+		log.Fatalf("migrations failed: %v", err)
+	}
+
 	router := gin.Default()
 
 	api := router.Group("/api")
