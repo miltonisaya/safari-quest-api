@@ -20,6 +20,12 @@ func UserFindByUUID(uuid uuid.UUID) (models.User, error) {
 	return user, result.Error
 }
 
+func UserFindByEmail(email string) (models.User, error) {
+	var user models.User
+	result := database.GORM_DB.Preload("Roles").Where("email = ?", email).First(&user)
+	return user, result.Error
+}
+
 func UserCreate(user *models.User) error {
 	return database.GORM_DB.Create(user).Error
 }
