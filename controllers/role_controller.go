@@ -14,7 +14,7 @@ import (
 
 type RoleController struct{}
 
-func (rc RoleController) Index(c *gin.Context) {
+func (controller RoleController) Index(c *gin.Context) {
 	roles, err := services.RoleGetAll()
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch roles")
@@ -23,13 +23,13 @@ func (rc RoleController) Index(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Roles retrieved", roles)
 }
 
-func (rc RoleController) Show(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+func (controller RoleController) Show(c *gin.Context) {
+	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid role ID", nil)
+		response.Fail(c, http.StatusBadRequest, "Invalid authority UUID", nil)
 		return
 	}
-	role, err := services.RoleGetByID(id)
+	authority, err := services.RoleGetByUUID(uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Role not found", nil)
@@ -38,10 +38,10 @@ func (rc RoleController) Show(c *gin.Context) {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch role")
 		return
 	}
-	response.Success(c, http.StatusOK, "Role retrieved", role)
+	response.Success(c, http.StatusOK, "Role retrieved", authority)
 }
 
-func (rc RoleController) Create(c *gin.Context) {
+func (controller RoleController) Create(c *gin.Context) {
 	var input services.RoleInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
@@ -55,10 +55,10 @@ func (rc RoleController) Create(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "Role created", role)
 }
 
-func (rc RoleController) Update(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+func (controller RoleController) Update(c *gin.Context) {
+	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid role ID", nil)
+		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
 		return
 	}
 	var input services.RoleInput
@@ -66,7 +66,7 @@ func (rc RoleController) Update(c *gin.Context) {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	role, err := services.RoleUpdate(id, input)
+	role, err := services.RoleUpdate(uid, input)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Role not found", nil)
@@ -78,19 +78,19 @@ func (rc RoleController) Update(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Role updated", role)
 }
 
-func (rc RoleController) Delete(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+func (controller RoleController) Delete(c *gin.Context) {
+	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid role ID", nil)
+		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
 		return
 	}
-	if err := services.RoleDelete(id); err != nil {
+	if err := services.RoleDelete(uid); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response.Fail(c, http.StatusNotFound, "Role not found", nil)
+			response.Fail(c, http.StatusNotFound, "Authority not found", nil)
 			return
 		}
 		response.Error(c, http.StatusInternalServerError, "Failed to delete role")
 		return
 	}
-	response.Success(c, http.StatusOK, "Role deleted", nil)
+	response.Success(c, http.StatusOK, "Authority deleted", nil)
 }
