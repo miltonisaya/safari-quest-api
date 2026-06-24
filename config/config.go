@@ -15,6 +15,7 @@ type config struct {
 	Seed                 bool
 	AdminEmail           string
 	AdminDefaultPassword string
+	SwaggerHost          string
 }
 
 var App config
@@ -24,14 +25,16 @@ func Load() {
 		log.Println("no env/.env file found, reading from environment")
 	}
 
+	port := getEnv("SERVER_PORT", "8080")
 	App = config{
-		ServerPort:           getEnv("SERVER_PORT", "8080"),
+		ServerPort:           port,
 		DBString:             getEnv("DB_STRING", ""),
 		GinMode:              getEnv("GIN_MODE", "debug"),
 		JWTSecret:            getEnv("JWT_SECRET", ""),
 		Seed:                 getEnv("SEED", "false") == "true",
 		AdminEmail:           getEnv("ADMIN_EMAIL", ""),
 		AdminDefaultPassword: getEnv("ADMIN_DEFAULT_PASSWORD", ""),
+		SwaggerHost:          getEnv("SWAGGER_HOST", "localhost:"+port),
 	}
 }
 
