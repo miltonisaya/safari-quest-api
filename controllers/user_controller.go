@@ -12,85 +12,85 @@ import (
 	"gorm.io/gorm"
 )
 
-type RoleController struct{}
+type UserController struct{}
 
-func (rc RoleController) Index(c *gin.Context) {
-	roles, err := services.RoleGetAll()
+func (controller UserController) Index(c *gin.Context) {
+	users, err := services.UserGetAll()
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Failed to fetch roles")
+		response.Error(c, http.StatusInternalServerError, "Failed to fetch users")
 		return
 	}
-	response.Success(c, http.StatusOK, "Roles retrieved", roles)
+	response.Success(c, http.StatusOK, "Users retrieved", users)
 }
 
-func (rc RoleController) Show(c *gin.Context) {
+func (controller UserController) Show(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
+		response.Fail(c, http.StatusBadRequest, "Invalid user UUID", nil)
 		return
 	}
-	role, err := services.RoleGetByUUID(uid)
+	user, err := services.UserGetByUUID(uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response.Fail(c, http.StatusNotFound, "Role not found", nil)
+			response.Fail(c, http.StatusNotFound, "User not found", nil)
 			return
 		}
-		response.Error(c, http.StatusInternalServerError, "Failed to fetch role")
+		response.Error(c, http.StatusInternalServerError, "Failed to fetch user")
 		return
 	}
-	response.Success(c, http.StatusOK, "Role retrieved", role)
+	response.Success(c, http.StatusOK, "User retrieved", user)
 }
 
-func (rc RoleController) Create(c *gin.Context) {
-	var input services.RoleInput
+func (controller UserController) Create(c *gin.Context) {
+	var input services.UserInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	role, err := services.RoleCreate(input)
+	user, err := services.UserCreate(input)
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Failed to create role")
+		response.Error(c, http.StatusInternalServerError, "Failed to create user")
 		return
 	}
-	response.Success(c, http.StatusCreated, "Role created", role)
+	response.Success(c, http.StatusCreated, "User created", user)
 }
 
-func (rc RoleController) Update(c *gin.Context) {
+func (controller UserController) Update(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
+		response.Fail(c, http.StatusBadRequest, "Invalid user UUID", nil)
 		return
 	}
-	var input services.RoleInput
+	var input services.UserInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	role, err := services.RoleUpdate(uid, input)
+	user, err := services.UserUpdate(uid, input)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response.Fail(c, http.StatusNotFound, "Role not found", nil)
+			response.Fail(c, http.StatusNotFound, "User not found", nil)
 			return
 		}
-		response.Error(c, http.StatusInternalServerError, "Failed to update role")
+		response.Error(c, http.StatusInternalServerError, "Failed to update user")
 		return
 	}
-	response.Success(c, http.StatusOK, "Role updated", role)
+	response.Success(c, http.StatusOK, "User updated", user)
 }
 
-func (rc RoleController) Delete(c *gin.Context) {
+func (controller UserController) Delete(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
+		response.Fail(c, http.StatusBadRequest, "Invalid user UUID", nil)
 		return
 	}
-	if err := services.RoleDelete(uid); err != nil {
+	if err := services.UserDelete(uid); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response.Fail(c, http.StatusNotFound, "Role not found", nil)
+			response.Fail(c, http.StatusNotFound, "User not found", nil)
 			return
 		}
-		response.Error(c, http.StatusInternalServerError, "Failed to delete role")
+		response.Error(c, http.StatusInternalServerError, "Failed to delete user")
 		return
 	}
-	response.Success(c, http.StatusOK, "Role deleted", nil)
+	response.Success(c, http.StatusOK, "User deleted", nil)
 }
