@@ -15,4 +15,4 @@ CREATE TABLE roles (
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS roles CASCADE;
