@@ -13,4 +13,4 @@ CREATE TABLE authorities (
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS authorities;
+DROP TABLE IF EXISTS authorities CASCADE;
