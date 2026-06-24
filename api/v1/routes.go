@@ -14,6 +14,9 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	// Public routes — no authentication required.
 	rg.GET("/health", healthCheck)
 
+	authController := controllers.AuthController{}
+	rg.POST("/auth/login", authController.Login)
+
 	// Protected routes — Auth() validates the JWT and Authorize() automatically
 	// derives the required authority code from the route pattern and HTTP method,
 	// then checks the user holds it via their roles. No per-route configuration needed.
