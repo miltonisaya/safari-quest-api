@@ -1,17 +1,30 @@
 package main
 
 import (
-	"net/http"
+	"log"
+
+	"safari-quest-api/api/v1"
+	"safari-quest-api/config"
+	"safari-quest-api/database"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	config.Load()
+
+	gin.SetMode(config.App.GinMode)
+
+	if err := database.ConnectToDatabase(); err != nil {
+		log.Fatalf("database connection failed: %v", err)
+	}
+
 	router := gin.Default()
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "SafariQuest API Application",
-		})
-	})
-	router.Run(":8080")
+
+	api := router.Group("/api")
+	{
+		v1.RegisterRoutes(api.Group("/v1"))
+	}
+
+	router.Run(":" + config.App.ServerPort)
 }
