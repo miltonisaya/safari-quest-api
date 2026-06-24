@@ -1,6 +1,8 @@
 package services
 
 import (
+	"time"
+
 	"safari-quest-api/models"
 	"safari-quest-api/repositories"
 
@@ -12,34 +14,68 @@ type RoleInput struct {
 	Code string `json:"code" binding:"required"`
 }
 
-func RoleGetAll() ([]models.Role, error) {
-	return repositories.RoleFindAll()
+type RoleResponse struct {
+	UUID      uuid.UUID `json:"uuid"`
+	Name      string    `json:"name"`
+	Code      string    `json:"code"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func RoleGetByID(id uuid.UUID) (models.Role, error) {
-	return repositories.RoleFindByID(id)
+func toRoleResponse(role models.Role) RoleResponse {
+	return RoleResponse{
+		UUID:      role.UUID,
+		Name:      role.Name,
+		Code:      role.Code,
+		CreatedAt: role.CreatedAt,
+		UpdatedAt: role.UpdatedAt,
+	}
 }
 
-func RoleCreate(input RoleInput) (models.Role, error) {
+func RoleGetAll() ([]RoleResponse, error) {
+	roles, err := repositories.RoleFindAll()
+	if err != nil {
+		return nil, err
+	}
+	response := make([]RoleResponse, len(roles))
+	for i, role := range roles {
+		response[i] = toRoleResponse(role)
+	}
+	return response, nil
+}
+
+func RoleGetByUUID(uuid uuid.UUID) (RoleResponse, error) {
+	role, err := repositories.RoleFindByUUID(uuid)
+	if err != nil {
+		return RoleResponse{}, err
+	}
+	return toRoleResponse(role), nil
+}
+
+func RoleCreate(input RoleInput) (RoleResponse, error) {
 	role := models.Role{
 		Name: input.Name,
 		Code: input.Code,
 	}
-	err := repositories.RoleCreate(&role)
-	return role, err
+	if err := repositories.RoleCreate(&role); err != nil {
+		return RoleResponse{}, err
+	}
+	return toRoleResponse(role), nil
 }
 
-func RoleUpdate(id uuid.UUID, input RoleInput) (models.Role, error) {
-	role, err := repositories.RoleFindByID(id)
+func RoleUpdate(uuid uuid.UUID, input RoleInput) (RoleResponse, error) {
+	role, err := repositories.RoleFindByUUID(uuid)
 	if err != nil {
-		return role, err
+		return RoleResponse{}, err
 	}
 	role.Name = input.Name
 	role.Code = input.Code
-	err = repositories.RoleUpdate(&role)
-	return role, err
+	if err := repositories.RoleUpdate(&role); err != nil {
+		return RoleResponse{}, err
+	}
+	return toRoleResponse(role), nil
 }
 
-func RoleDelete(id uuid.UUID) error {
-	return repositories.RoleDelete(id)
+func RoleDelete(uuid uuid.UUID) error {
+	return repositories.RoleDelete(uuid)
 }
