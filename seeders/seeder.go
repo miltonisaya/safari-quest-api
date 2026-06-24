@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 // Run seeds the database in dependency order:
@@ -70,7 +71,8 @@ func seedAdminRole(authorities []models.Authority) models.Role {
 		Code: "Administrator",
 	})
 
-	if err := database.GORM_DB.Model(&role).Association("Authorities").Replace(authorities); err != nil {
+	if err := database.GORM_DB.Session(&gorm.Session{FullSaveAssociations: false}).
+		Model(&role).Association("Authorities").Replace(authorities); err != nil {
 		log.Printf("[seeder] warning: could not assign authorities to role: %v\n", err)
 	}
 
@@ -99,8 +101,10 @@ func seedSuperUser(role models.Role) {
 	result := database.GORM_DB.Where("email = ?", config.App.AdminEmail).First(&user)
 
 	if result.Error != nil {
-		// User does not exist — create them with the Administrator role in one step.
-		// GORM will insert into user_roles automatically via the Roles association.
+		// User does not exist — create the user record first, then assign the role
+		// separately via Association.Replace. Passing roles directly into the struct
+		// would trigger GORM's FullSaveAssociations which upserts pre-existing records
+		// with an explicit id, failing on GENERATED ALWAYS AS IDENTITY columns.
 		user = models.User{
 			FirstName: "Super",
 			LastName:  "Admin",
@@ -110,16 +114,21 @@ func seedSuperUser(role models.Role) {
 			Mobile:    "N/A",
 			Address:   "System",
 			IsActive:  true,
-			Roles:     []models.Role{role},
 		}
 		if err := database.GORM_DB.Create(&user).Error; err != nil {
 			log.Printf("[seeder] could not create super user: %v\n", err)
 			return
 		}
+		if err := database.GORM_DB.Session(&gorm.Session{FullSaveAssociations: false}).
+			Model(&user).Association("Roles").Replace([]models.Role{role}); err != nil {
+			log.Printf("[seeder] could not assign role to super user: %v\n", err)
+			return
+		}
 		log.Printf("[seeder] super user created: %s\n", config.App.AdminEmail)
 	} else {
 		// User exists — refresh the role assignment in case it was removed.
-		if err := database.GORM_DB.Model(&user).Association("Roles").Replace([]models.Role{role}); err != nil {
+		if err := database.GORM_DB.Session(&gorm.Session{FullSaveAssociations: false}).
+			Model(&user).Association("Roles").Replace([]models.Role{role}); err != nil {
 			log.Printf("[seeder] could not assign role to super user: %v\n", err)
 		}
 		log.Println("[seeder] super user already exists, role assignment refreshed")
