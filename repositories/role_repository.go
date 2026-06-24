@@ -3,14 +3,38 @@ package repositories
 import (
 	"safari-quest-api/database"
 	"safari-quest-api/models"
+	"safari-quest-api/pkg/pagination"
 
 	"github.com/google/uuid"
 )
 
-func RoleFindAll() ([]models.Role, error) {
+var roleSortColumns = map[string]string{
+	"name":       "name",
+	"code":       "code",
+	"created_at": "created_at",
+	"updated_at": "updated_at",
+}
+
+func RoleFindAll(params pagination.Params) ([]models.Role, int64, error) {
 	var roles []models.Role
-	result := database.GORM_DB.Find(&roles)
-	return roles, result.Error
+	var total int64
+
+	db := database.GORM_DB.Model(&models.Role{})
+
+	if params.Search != "" {
+		term := "%" + params.Search + "%"
+		db = db.Where("name ILIKE ? OR code ILIKE ?", term, term)
+	}
+
+	db.Count(&total)
+
+	result := db.
+		Order(params.OrderClause(roleSortColumns, "created_at")).
+		Offset(params.Offset()).
+		Limit(params.PerPage).
+		Find(&roles)
+
+	return roles, total, result.Error
 }
 
 func RoleFindByUUID(uuid uuid.UUID) (models.Role, error) {
