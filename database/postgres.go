@@ -5,6 +5,7 @@ import (
 
 	"safari-quest-api/config"
 
+	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -22,4 +23,11 @@ func ConnectToDatabase() error {
 	SQL_DB, _ = db.DB()
 	DB_MIGRATOR = db.Migrator()
 	return nil
+}
+
+func RunMigrations() error {
+	if err := goose.SetDialect("postgres"); err != nil {
+		return err
+	}
+	return goose.Up(SQL_DB, "./migrations")
 }
