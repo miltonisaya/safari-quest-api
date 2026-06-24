@@ -12,9 +12,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type RoleController struct{}
+type AuthorityController struct{}
 
-func (rc RoleController) Index(c *gin.Context) {
+func (rc AuthorityController) Index(c *gin.Context) {
 	roles, err := services.RoleGetAll()
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch roles")
@@ -23,7 +23,7 @@ func (rc RoleController) Index(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Roles retrieved", roles)
 }
 
-func (rc RoleController) Show(c *gin.Context) {
+func (rc AuthorityController) Show(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
@@ -41,7 +41,7 @@ func (rc RoleController) Show(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Role retrieved", role)
 }
 
-func (rc RoleController) Create(c *gin.Context) {
+func (controller AuthorityController) Create(c *gin.Context) {
 	var input services.RoleInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
@@ -55,7 +55,7 @@ func (rc RoleController) Create(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "Role created", role)
 }
 
-func (rc RoleController) Update(c *gin.Context) {
+func (controller AuthorityController) Update(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
@@ -78,7 +78,7 @@ func (rc RoleController) Update(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Role updated", role)
 }
 
-func (rc RoleController) Delete(c *gin.Context) {
+func (controller AuthorityController) Delete(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
@@ -89,8 +89,8 @@ func (rc RoleController) Delete(c *gin.Context) {
 			response.Fail(c, http.StatusNotFound, "Role not found", nil)
 			return
 		}
-		response.Error(c, http.StatusInternalServerError, "Failed to delete role")
+		response.Error(c, http.StatusInternalServerError, "Failed to delete Authority")
 		return
 	}
-	response.Success(c, http.StatusOK, "Role deleted", nil)
+	response.Success(c, http.StatusOK, "Authority deleted", nil)
 }
