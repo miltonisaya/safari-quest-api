@@ -12,6 +12,18 @@ import (
 
 type AuthController struct{}
 
+// Login godoc
+// @Summary      Login
+// @Description  Authenticate with email and password and receive a JWT token
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        body body services.LoginInput true "Login credentials"
+// @Success      200 {object} response.CustomApiResponse{data=services.LoginResponse}
+// @Failure      400 {object} response.CustomApiResponse
+// @Failure      401 {object} response.CustomApiResponse
+// @Failure      403 {object} response.CustomApiResponse
+// @Router       /auth/login [post]
 func (controller AuthController) Login(c *gin.Context) {
 	var input services.LoginInput
 	if err := c.ShouldBindJSON(&input); err != nil {
