@@ -36,3 +36,20 @@ func UserUpdate(user *models.User, roles []models.Role) error {
 func UserDelete(uuid uuid.UUID) error {
 	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.User{}).Error
 }
+
+// UserHasAuthority checks whether the user identified by userUUID holds any
+// role that grants the given authority code. It does this in a single JOIN
+// query across users → user_roles → roles → role_authorities → authorities
+// rather than preloading the full object graph, keeping the hot-path check fast.
+func UserHasAuthority(userUUID uuid.UUID, authorityCode string) (bool, error) {
+	var count int64
+	result := database.GORM_DB.
+		Table("users u").
+		Joins("JOIN user_roles ur ON ur.user_id = u.id").
+		Joins("JOIN roles r ON r.id = ur.role_id").
+		Joins("JOIN role_authorities ra ON ra.role_id = r.id").
+		Joins("JOIN authorities a ON a.id = ra.authority_id").
+		Where("u.uuid = ? AND a.code = ? AND u.deleted_at IS NULL AND r.deleted_at IS NULL AND a.deleted_at IS NULL", userUUID, authorityCode).
+		Count(&count)
+	return count > 0, result.Error
+}
