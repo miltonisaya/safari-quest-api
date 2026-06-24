@@ -7,16 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
-type Role struct {
-	ID        uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
-	Name      string         `gorm:"uniqueIndex;not null" json:"name"`
-	Code      string         `gorm:"uniqueIndex;not null" json:"code"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+type Authority struct {
+	ID        uint           `gorm:"primaryKey;autoIncrement" json:"-"`
+	UUID      uuid.UUID      `gorm:"type:uuid;uniqueIndex;not null" json:"-"`
+	Name      string         `gorm:"uniqueIndex;not null" json:"-"`
+	Code      string         `gorm:"uniqueIndex;not null" json:"-"`
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	Roles     []Role         `gorm:"many2many:role_authorities;" json:"-"`
 }
 
-func (r *Role) BeforeCreate(tx *gorm.DB) error {
-	r.ID = uuid.New()
+func (a *Authority) BeforeCreate(tx *gorm.DB) error {
+	a.UUID = uuid.New()
 	return nil
 }
