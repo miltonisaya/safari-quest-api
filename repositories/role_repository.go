@@ -13,9 +13,9 @@ func RoleFindAll() ([]models.Role, error) {
 	return roles, result.Error
 }
 
-func RoleFindByID(id uuid.UUID) (models.Role, error) {
+func RoleFindByUUID(uuid uuid.UUID) (models.Role, error) {
 	var role models.Role
-	result := database.GORM_DB.First(&role, "id = ?", id)
+	result := database.GORM_DB.First(&role, "uuid = ?", uuid)
 	return role, result.Error
 }
 
@@ -27,6 +27,12 @@ func RoleUpdate(role *models.Role) error {
 	return database.GORM_DB.Save(role).Error
 }
 
-func RoleDelete(id uuid.UUID) error {
-	return database.GORM_DB.Delete(&models.Role{}, "id = ?", id).Error
+func RoleDelete(uuid uuid.UUID) error {
+	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.Role{}).Error
+}
+
+func RoleFindByUUIDs(uuids []uuid.UUID) ([]models.Role, error) {
+	var roles []models.Role
+	result := database.GORM_DB.Where("uuid IN ?", uuids).Find(&roles)
+	return roles, result.Error
 }
