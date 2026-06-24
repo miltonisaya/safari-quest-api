@@ -7,26 +7,26 @@ import (
 	"github.com/google/uuid"
 )
 
-func RoleFindAll() ([]models.Role, error) {
-	var roles []models.Role
-	result := database.GORM_DB.Find(&roles)
-	return roles, result.Error
+func AuthorityFindAll() ([]models.Authority, error) {
+	var authorities []models.Authority
+	result := database.GORM_DB.Find(&authorities)
+	return authorities, result.Error
 }
 
-func RoleFindByUUID(uuid uuid.UUID) (models.Role, error) {
-	var role models.Role
-	result := database.GORM_DB.First(&role, "uuid = ?", uuid)
-	return role, result.Error
+func AuthorityFindByUUID(uuid uuid.UUID) (models.Authority, error) {
+	var authority models.Authority
+	result := database.GORM_DB.First(&authority, "uuid = ?", uuid)
+	return authority, result.Error
 }
 
-func RoleCreate(role *models.Role) error {
-	return database.GORM_DB.Create(role).Error
+func AuthorityCreate(authority *models.Authority) error {
+	return database.GORM_DB.Create(authority).Error
 }
 
-func RoleUpdate(role *models.Role) error {
-	return database.GORM_DB.Save(role).Error
+func AuthorityUpdate(authority *models.Authority) error {
+	return database.GORM_DB.Save(authority).Error
 }
 
-func RoleDelete(uuid uuid.UUID) error {
-	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.Role{}).Error
+func AuthorityDelete(uuid uuid.UUID) error {
+	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.Authority{}).Error
 }
