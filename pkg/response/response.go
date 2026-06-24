@@ -10,7 +10,7 @@ const (
 	StatusError   Status = "error"
 )
 
-type Response struct {
+type CustomApiResponse struct {
 	Status  Status `json:"status"`
 	Code    int    `json:"code"`
 	Message string `json:"message"`
@@ -19,7 +19,7 @@ type Response struct {
 
 // Success sends a 2xx response with data.
 func Success(c *gin.Context, httpCode int, message string, data any) {
-	c.JSON(httpCode, Response{
+	c.JSON(httpCode, CustomApiResponse{
 		Status:  StatusSuccess,
 		Code:    httpCode,
 		Message: message,
@@ -30,7 +30,7 @@ func Success(c *gin.Context, httpCode int, message string, data any) {
 // Fail sends a 4xx response for client-side problems (e.g. validation errors).
 // data can carry field-level error details.
 func Fail(c *gin.Context, httpCode int, message string, data any) {
-	c.JSON(httpCode, Response{
+	c.JSON(httpCode, CustomApiResponse{
 		Status:  StatusFail,
 		Code:    httpCode,
 		Message: message,
@@ -40,7 +40,7 @@ func Fail(c *gin.Context, httpCode int, message string, data any) {
 
 // Error sends a 5xx response for server-side errors. data is always null.
 func Error(c *gin.Context, httpCode int, message string) {
-	c.JSON(httpCode, Response{
+	c.JSON(httpCode, CustomApiResponse{
 		Status:  StatusError,
 		Code:    httpCode,
 		Message: message,
