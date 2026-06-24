@@ -112,9 +112,8 @@ func UserCreate(input UserInput) (UserResponse, error) {
 		Sex:        input.Sex,
 		Mobile:     input.Mobile,
 		Address:    input.Address,
-		Roles:      roles,
 	}
-	if err := repositories.UserCreate(&user); err != nil {
+	if err := repositories.UserCreate(&user, roles); err != nil {
 		return UserResponse{}, err
 	}
 	return toUserResponse(user), nil
