@@ -6,6 +6,8 @@ import (
 	"safari-quest-api/api/v1"
 	"safari-quest-api/config"
 	"safari-quest-api/database"
+	"safari-quest-api/middlewares"
+	"safari-quest-api/seeders"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,11 +25,18 @@ func main() {
 		log.Fatalf("migrations failed: %v", err)
 	}
 
-	router := gin.Default()
+	router := gin.New()
+	router.Use(middlewares.Recovery(), middlewares.Logger())
 
 	api := router.Group("/api")
 	{
 		v1.RegisterRoutes(api.Group("/v1"))
+	}
+
+	// Seeders run after routes are registered so router.Routes() returns the
+	// full list. Controlled by SEED=true in .env so it only runs when needed.
+	if config.App.Seed {
+		seeders.Run(router)
 	}
 
 	router.Run(":" + config.App.ServerPort)
