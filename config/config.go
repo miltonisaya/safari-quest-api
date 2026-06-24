@@ -8,9 +8,13 @@ import (
 )
 
 type config struct {
-	ServerPort string
-	DBString   string
-	GinMode    string
+	ServerPort           string
+	DBString             string
+	GinMode              string
+	JWTSecret            string
+	Seed                 bool
+	AdminEmail           string
+	AdminDefaultPassword string
 }
 
 var App config
@@ -21,9 +25,13 @@ func Load() {
 	}
 
 	App = config{
-		ServerPort: getEnv("SERVER_PORT", "8080"),
-		DBString:   getEnv("DB_STRING", ""),
-		GinMode:    getEnv("GIN_MODE", "debug"),
+		ServerPort:           getEnv("SERVER_PORT", "8080"),
+		DBString:             getEnv("DB_STRING", ""),
+		GinMode:              getEnv("GIN_MODE", "debug"),
+		JWTSecret:            getEnv("JWT_SECRET", ""),
+		Seed:                 getEnv("SEED", "false") == "true",
+		AdminEmail:           getEnv("ADMIN_EMAIL", ""),
+		AdminDefaultPassword: getEnv("ADMIN_DEFAULT_PASSWORD", ""),
 	}
 }
 
