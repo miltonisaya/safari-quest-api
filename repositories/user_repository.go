@@ -3,15 +3,41 @@ package repositories
 import (
 	"safari-quest-api/database"
 	"safari-quest-api/models"
+	"safari-quest-api/pkg/pagination"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-func UserFindAll() ([]models.User, error) {
+var userSortColumns = map[string]string{
+	"first_name": "first_name",
+	"last_name":  "last_name",
+	"email":      "email",
+	"created_at": "created_at",
+	"updated_at": "updated_at",
+}
+
+func UserFindAll(params pagination.Params) ([]models.User, int64, error) {
 	var users []models.User
-	result := database.GORM_DB.Preload("Roles").Find(&users)
-	return users, result.Error
+	var total int64
+
+	db := database.GORM_DB.Model(&models.User{})
+
+	if params.Search != "" {
+		term := "%" + params.Search + "%"
+		db = db.Where("first_name ILIKE ? OR last_name ILIKE ? OR email ILIKE ? OR mobile ILIKE ?", term, term, term, term)
+	}
+
+	db.Count(&total)
+
+	result := db.
+		Preload("Roles").
+		Order(params.OrderClause(userSortColumns, "created_at")).
+		Offset(params.Offset()).
+		Limit(params.PerPage).
+		Find(&users)
+
+	return users, total, result.Error
 }
 
 func UserFindByUUID(uuid uuid.UUID) (models.User, error) {
