@@ -13,14 +13,23 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	rg.GET("/health", healthCheck)
 
 	roleController := controllers.RoleController{}
-
 	roles := rg.Group("/roles")
 	{
 		roles.GET("", roleController.Index)
 		roles.POST("", roleController.Create)
-		roles.GET("/:id", roleController.Show)
-		roles.PUT("/:id", roleController.Update)
-		roles.DELETE("/:id", roleController.Delete)
+		roles.GET("/:uuid", roleController.Show)
+		roles.PUT("/:uuid", roleController.Update)
+		roles.DELETE("/:uuid", roleController.Delete)
+	}
+
+	userController := controllers.UserController{}
+	users := rg.Group("/users")
+	{
+		users.GET("", userController.Index)
+		users.POST("", userController.Create)
+		users.GET("/:uuid", userController.Show)
+		users.PUT("/:uuid", userController.Update)
+		users.DELETE("/:uuid", userController.Delete)
 	}
 }
 
