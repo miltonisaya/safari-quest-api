@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"safari-quest-api/pkg/pagination"
 	"safari-quest-api/pkg/response"
 	"safari-quest-api/services"
 
@@ -16,15 +17,21 @@ type RoleController struct{}
 
 // Index godoc
 // @Summary      List roles
-// @Description  Return all roles
+// @Description  Return a paginated, searchable, and sortable list of roles
 // @Tags         Roles
 // @Produce      json
-// @Success      200 {object} response.CustomApiResponse{data=[]services.RoleResponse}
+// @Param        page     query int    false "Page number"          default(1)
+// @Param        per_page query int    false "Items per page"       default(15)
+// @Param        search   query string false "Search by name or code"
+// @Param        sort_by  query string false "Sort column: name, code, created_at, updated_at" default(created_at)
+// @Param        sort_dir query string false "Sort direction: asc or desc"                      default(asc)
+// @Success      200 {object} response.CustomApiResponse{data=pagination.Result[services.RoleResponse]}
 // @Failure      500 {object} response.CustomApiResponse
 // @Security     BearerAuth
 // @Router       /roles [get]
 func (controller RoleController) Index(c *gin.Context) {
-	roles, err := services.RoleGetAll()
+	params := pagination.FromContext(c)
+	roles, err := services.RoleGetAll(params)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch roles")
 		return
