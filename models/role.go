@@ -8,15 +8,18 @@ import (
 )
 
 type Role struct {
-	ID        uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
-	Name      string         `gorm:"uniqueIndex;not null" json:"name"`
-	Code      string         `gorm:"uniqueIndex;not null" json:"code"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID          uint           `gorm:"primaryKey;autoIncrement" json:"-"`
+	UUID        uuid.UUID      `gorm:"type:uuid;uniqueIndex;not null" json:"-"`
+	Name        string         `gorm:"uniqueIndex;not null" json:"-"`
+	Code        string         `gorm:"uniqueIndex;not null" json:"-"`
+	CreatedAt   time.Time      `json:"-"`
+	UpdatedAt   time.Time      `json:"-"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+	Authorities []Authority    `gorm:"many2many:role_authorities;" json:"-"`
+	Users       []User         `gorm:"many2many:user_roles;" json:"-"`
 }
 
 func (r *Role) BeforeCreate(tx *gorm.DB) error {
-	r.ID = uuid.New()
+	r.UUID = uuid.New()
 	return nil
 }
