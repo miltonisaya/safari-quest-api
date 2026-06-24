@@ -7,20 +7,20 @@ import (
 	"github.com/google/uuid"
 )
 
-type RoleInput struct {
+type AuthorityInput struct {
 	Name string `json:"name" binding:"required"`
 	Code string `json:"code" binding:"required"`
 }
 
-func RoleGetAll() ([]models.Role, error) {
+func AuthorityGetAll() ([]models.Role, error) {
 	return repositories.RoleFindAll()
 }
 
-func RoleGetByUUID(uuid uuid.UUID) (models.Role, error) {
+func AuthorityGetByUUID(uuid uuid.UUID) (models.Role, error) {
 	return repositories.RoleFindByUUID(uuid)
 }
 
-func RoleCreate(input RoleInput) (models.Role, error) {
+func AuthorityCreate(input RoleInput) (models.Role, error) {
 	role := models.Role{
 		Name: input.Name,
 		Code: input.Code,
@@ -29,17 +29,16 @@ func RoleCreate(input RoleInput) (models.Role, error) {
 	return role, err
 }
 
-func RoleUpdate(uuid uuid.UUID, input RoleInput) (models.Role, error) {
-	role, err := repositories.RoleFindByUUID(uuid)
+func AuthorityUpdate(uuid uuid.UUID, input AuthorityInput) (models.Authority, error) {
+	authority, err := repositories.AuthorityFindByUUID(uuid)
 	if err != nil {
-		return role, err
+		return authority, err
 	}
-	role.Name = input.Name
-	role.Code = input.Code
-	err = repositories.RoleUpdate(&role)
-	return role, err
+	authority.Name = input.Name
+	err = repositories.AuthorityUpdate(&authority)
+	return authority, err
 }
 
-func RoleDelete(uuid uuid.UUID) error {
-	return repositories.RoleDelete(uuid)
+func AuthorityDelete(uuid uuid.UUID) error {
+	return repositories.AuthorityDelete(uuid)
 }
