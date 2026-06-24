@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"safari-quest-api/models"
+	"safari-quest-api/pkg/pagination"
 	"safari-quest-api/repositories"
 
 	"github.com/google/uuid"
@@ -72,16 +73,19 @@ func resolveRoles(roleIDs []uuid.UUID) ([]models.Role, error) {
 	return roles, nil
 }
 
-func UserGetAll() ([]UserResponse, error) {
-	users, err := repositories.UserFindAll()
+func UserGetAll(params pagination.Params) (pagination.Result[UserResponse], error) {
+	users, total, err := repositories.UserFindAll(params)
 	if err != nil {
-		return nil, err
+		return pagination.Result[UserResponse]{}, err
 	}
-	response := make([]UserResponse, len(users))
+	items := make([]UserResponse, len(users))
 	for i, user := range users {
-		response[i] = toUserResponse(user)
+		items[i] = toUserResponse(user)
 	}
-	return response, nil
+	return pagination.Result[UserResponse]{
+		Items: items,
+		Meta:  pagination.NewMeta(total, params),
+	}, nil
 }
 
 func UserGetByUUID(uuid uuid.UUID) (UserResponse, error) {
