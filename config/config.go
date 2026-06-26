@@ -21,8 +21,8 @@ type config struct {
 var App config
 
 func Load() {
-	if err := godotenv.Load("env/.env"); err != nil {
-		log.Println("no env/.env file found, reading from environment")
+	if err := godotenv.Load(".env"); err != nil {
+		log.Println("no .env file found, reading from environment")
 	}
 
 	port := getEnv("SERVER_PORT", "8080")
