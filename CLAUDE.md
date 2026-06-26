@@ -25,9 +25,9 @@ go test ./path/to/package -run TestName
 go mod tidy
 
 # Load DB env vars and run goose migrations
-source env/.env && goose up
+source .env && goose up
 
-# Goose migration commands (after sourcing env/.env)
+# Goose migration commands (after sourcing .env)
 goose status
 goose up
 goose down
@@ -38,7 +38,7 @@ goose create <name> sql
 
 - `main.go` — entry point; creates the Gin router and registers routes
 - `database/postgres.go` — opens the GORM + raw `*sql.DB` connection; exposes `GORMDB`, `SQLDB`, and `DB_MIGRATOR` package-level vars; reads `GOOSE_DBSTRING` from the environment
-- `env/goose.env` — shell exports for Goose (`GOOSE_DRIVER`, `GOOSE_DBSTRING`, `GOOSE_MIGRATION_DIR`); source this before running goose commands
+- `.env` — environment variables for both the app and Goose (`GOOSE_DRIVER`, `GOOSE_DBSTRING`, `GOOSE_MIGRATION_DIR`); source this before running goose commands
 
 ## Git Commits
 
