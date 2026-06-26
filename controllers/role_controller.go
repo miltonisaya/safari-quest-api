@@ -16,19 +16,20 @@ import (
 type RoleController struct{}
 
 // Index godoc
-// @Summary      List roles
-// @Description  Return a paginated, searchable, and sortable list of roles
-// @Tags         Roles
-// @Produce      json
-// @Param        page     query int    false "Page number"          default(1)
-// @Param        per_page query int    false "Items per page"       default(15)
-// @Param        search   query string false "Search by name or code"
-// @Param        sort_by  query string false "Sort column: name, code, created_at, updated_at" default(created_at)
-// @Param        sort_dir query string false "Sort direction: asc or desc"                      default(asc)
-// @Success      200 {object} response.CustomApiResponse{data=pagination.Result[services.RoleResponse]}
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /roles [get]
+//
+//	@Summary		List roles
+//	@Description	Return a paginated, searchable, and sortable list of roles
+//	@Tags			Roles
+//	@Produce		json
+//	@Param			page		query		int		false	"Page number"		default(1)
+//	@Param			per_page	query		int		false	"Items per page"	default(15)
+//	@Param			search		query		string	false	"Search by name or code"
+//	@Param			sort_by		query		string	false	"Sort column: name, code, created_at, updated_at"	default(created_at)
+//	@Param			sort_dir	query		string	false	"Sort direction: asc or desc"						default(asc)
+//	@Success		200			{object}	response.CustomApiResponse{data=pagination.Result[services.RoleResponse]}
+//	@Failure		500			{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/roles [get]
 func (controller RoleController) Index(c *gin.Context) {
 	params := pagination.FromContext(c)
 	roles, err := services.RoleGetAll(params)
@@ -40,17 +41,18 @@ func (controller RoleController) Index(c *gin.Context) {
 }
 
 // Show godoc
-// @Summary      Get role
-// @Description  Return a single role by UUID
-// @Tags         Roles
-// @Produce      json
-// @Param        uuid path string true "Role UUID"
-// @Success      200 {object} response.CustomApiResponse{data=services.RoleResponse}
-// @Failure      400 {object} response.CustomApiResponse
-// @Failure      404 {object} response.CustomApiResponse
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /roles/{uuid} [get]
+//
+//	@Summary		Get role
+//	@Description	Return a single role by UUID
+//	@Tags			Roles
+//	@Produce		json
+//	@Param			uuid	path		string	true	"Role UUID"
+//	@Success		200		{object}	response.CustomApiResponse{data=services.RoleResponse}
+//	@Failure		400		{object}	response.CustomApiResponse
+//	@Failure		404		{object}	response.CustomApiResponse
+//	@Failure		500		{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/roles/{uuid} [get]
 func (controller RoleController) Show(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
@@ -70,17 +72,18 @@ func (controller RoleController) Show(c *gin.Context) {
 }
 
 // Create godoc
-// @Summary      Create role
-// @Description  Create a new role
-// @Tags         Roles
-// @Accept       json
-// @Produce      json
-// @Param        body body services.RoleInput true "Role data"
-// @Success      201 {object} response.CustomApiResponse{data=services.RoleResponse}
-// @Failure      400 {object} response.CustomApiResponse
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /roles [post]
+//
+//	@Summary		Create role
+//	@Description	Create a new role
+//	@Tags			Roles
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		services.RoleInput	true	"Role data"
+//	@Success		201		{object}	response.CustomApiResponse{data=services.RoleResponse}
+//	@Failure		400		{object}	response.CustomApiResponse
+//	@Failure		500		{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/roles [post]
 func (controller RoleController) Create(c *gin.Context) {
 	var input services.RoleInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -96,19 +99,20 @@ func (controller RoleController) Create(c *gin.Context) {
 }
 
 // Update godoc
-// @Summary      Update role
-// @Description  Update an existing role by UUID
-// @Tags         Roles
-// @Accept       json
-// @Produce      json
-// @Param        uuid path string true "Role UUID"
-// @Param        body body services.RoleInput true "Role data"
-// @Success      200 {object} response.CustomApiResponse{data=services.RoleResponse}
-// @Failure      400 {object} response.CustomApiResponse
-// @Failure      404 {object} response.CustomApiResponse
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /roles/{uuid} [put]
+//
+//	@Summary		Update role
+//	@Description	Update an existing role by UUID
+//	@Tags			Roles
+//	@Accept			json
+//	@Produce		json
+//	@Param			uuid	path		string				true	"Role UUID"
+//	@Param			body	body		services.RoleInput	true	"Role data"
+//	@Success		200		{object}	response.CustomApiResponse{data=services.RoleResponse}
+//	@Failure		400		{object}	response.CustomApiResponse
+//	@Failure		404		{object}	response.CustomApiResponse
+//	@Failure		500		{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/roles/{uuid} [put]
 func (controller RoleController) Update(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
@@ -133,17 +137,18 @@ func (controller RoleController) Update(c *gin.Context) {
 }
 
 // Delete godoc
-// @Summary      Delete role
-// @Description  Soft-delete a role by UUID
-// @Tags         Roles
-// @Produce      json
-// @Param        uuid path string true "Role UUID"
-// @Success      200 {object} response.CustomApiResponse
-// @Failure      400 {object} response.CustomApiResponse
-// @Failure      404 {object} response.CustomApiResponse
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /roles/{uuid} [delete]
+//
+//	@Summary		Delete role
+//	@Description	Soft-delete a role by UUID
+//	@Tags			Roles
+//	@Produce		json
+//	@Param			uuid	path		string	true	"Role UUID"
+//	@Success		200		{object}	response.CustomApiResponse
+//	@Failure		400		{object}	response.CustomApiResponse
+//	@Failure		404		{object}	response.CustomApiResponse
+//	@Failure		500		{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/roles/{uuid} [delete]
 func (controller RoleController) Delete(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
