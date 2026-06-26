@@ -20,9 +20,9 @@ type Menu struct {
 	Active      bool      `gorm:"default:true" json:"active"`
 
 	//Recursive relationship
-	ParentID  *uint     `gorm:"index" json:"parent_id,omitempty"`
-	Parent    *Menu     `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
-	Children  []Menu    `gorm:"foreignKey:ParentID" json:"children,omitempty"`
+	ParentID  *uint          `gorm:"index" json:"parent_id,omitempty"`
+	Parent    *Menu          `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
+	Children  []Menu         `gorm:"foreignKey:ParentID" json:"children,omitempty"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
