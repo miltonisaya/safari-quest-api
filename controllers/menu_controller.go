@@ -16,19 +16,20 @@ import (
 type MenuController struct{}
 
 // Index godoc
-// @Summary      List menus
-// @Description  Return a paginated, searchable, and sortable list of menus
-// @Tags         Menus
-// @Produce      json
-// @Param        page     query int    false "Page number"          default(1)
-// @Param        per_page query int    false "Items per page"       default(15)
-// @Param        search   query string false "Search by name"
-// @Param        sort_by  query string false "Sort column: name, sort_order, created_at, updated_at" default(created_at)
-// @Param        sort_dir query string false "Sort direction: asc or desc"                            default(asc)
-// @Success      200 {object} response.CustomApiResponse{data=pagination.Result[services.MenuResponse]}
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /menus [get]
+//
+//	@Summary		List menus
+//	@Description	Return a paginated, searchable, and sortable list of menus
+//	@Tags			Menus
+//	@Produce		json
+//	@Param			page		query		int		false	"Page number"		default(1)
+//	@Param			per_page	query		int		false	"Items per page"	default(15)
+//	@Param			search		query		string	false	"Search by name"
+//	@Param			sort_by		query		string	false	"Sort column: name, sort_order, created_at, updated_at"	default(created_at)
+//	@Param			sort_dir	query		string	false	"Sort direction: asc or desc"							default(asc)
+//	@Success		200			{object}	response.CustomApiResponse{data=pagination.Result[services.MenuResponse]}
+//	@Failure		500			{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/menus [get]
 func (controller MenuController) Index(c *gin.Context) {
 	params := pagination.FromContext(c)
 	menus, err := services.MenuGetAll(params)
@@ -40,17 +41,18 @@ func (controller MenuController) Index(c *gin.Context) {
 }
 
 // Show godoc
-// @Summary      Get menu
-// @Description  Return a single menu by UUID
-// @Tags         Menus
-// @Produce      json
-// @Param        uuid path string true "Menu UUID"
-// @Success      200 {object} response.CustomApiResponse{data=services.MenuResponse}
-// @Failure      400 {object} response.CustomApiResponse
-// @Failure      404 {object} response.CustomApiResponse
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /menus/{uuid} [get]
+//
+//	@Summary		Get menu
+//	@Description	Return a single menu by UUID
+//	@Tags			Menus
+//	@Produce		json
+//	@Param			uuid	path		string	true	"Menu UUID"
+//	@Success		200		{object}	response.CustomApiResponse{data=services.MenuResponse}
+//	@Failure		400		{object}	response.CustomApiResponse
+//	@Failure		404		{object}	response.CustomApiResponse
+//	@Failure		500		{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/menus/{uuid} [get]
 func (controller MenuController) Show(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
@@ -70,17 +72,18 @@ func (controller MenuController) Show(c *gin.Context) {
 }
 
 // Create godoc
-// @Summary      Create menu
-// @Description  Create a new menu
-// @Tags         Menus
-// @Accept       json
-// @Produce      json
-// @Param        body body services.MenuInput true "Menu data"
-// @Success      201 {object} response.CustomApiResponse{data=services.MenuResponse}
-// @Failure      400 {object} response.CustomApiResponse
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /menus [post]
+//
+//	@Summary		Create menu
+//	@Description	Create a new menu
+//	@Tags			Menus
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		services.MenuInput	true	"Menu data"
+//	@Success		201		{object}	response.CustomApiResponse{data=services.MenuResponse}
+//	@Failure		400		{object}	response.CustomApiResponse
+//	@Failure		500		{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/menus [post]
 func (controller MenuController) Create(c *gin.Context) {
 	var input services.MenuInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -96,19 +99,20 @@ func (controller MenuController) Create(c *gin.Context) {
 }
 
 // Update godoc
-// @Summary      Update menu
-// @Description  Update an existing menu by UUID
-// @Tags         Menus
-// @Accept       json
-// @Produce      json
-// @Param        uuid path string true "Menu UUID"
-// @Param        body body services.MenuInput true "Menu data"
-// @Success      200 {object} response.CustomApiResponse{data=services.MenuResponse}
-// @Failure      400 {object} response.CustomApiResponse
-// @Failure      404 {object} response.CustomApiResponse
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /menus/{uuid} [put]
+//
+//	@Summary		Update menu
+//	@Description	Update an existing menu by UUID
+//	@Tags			Menus
+//	@Accept			json
+//	@Produce		json
+//	@Param			uuid	path		string				true	"Menu UUID"
+//	@Param			body	body		services.MenuInput	true	"Menu data"
+//	@Success		200		{object}	response.CustomApiResponse{data=services.MenuResponse}
+//	@Failure		400		{object}	response.CustomApiResponse
+//	@Failure		404		{object}	response.CustomApiResponse
+//	@Failure		500		{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/menus/{uuid} [put]
 func (controller MenuController) Update(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
@@ -133,17 +137,18 @@ func (controller MenuController) Update(c *gin.Context) {
 }
 
 // Delete godoc
-// @Summary      Delete menu
-// @Description  Soft-delete a menu by UUID
-// @Tags         Menus
-// @Produce      json
-// @Param        uuid path string true "Menu UUID"
-// @Success      200 {object} response.CustomApiResponse
-// @Failure      400 {object} response.CustomApiResponse
-// @Failure      404 {object} response.CustomApiResponse
-// @Failure      500 {object} response.CustomApiResponse
-// @Security     BearerAuth
-// @Router       /menus/{uuid} [delete]
+//
+//	@Summary		Delete menu
+//	@Description	Soft-delete a menu by UUID
+//	@Tags			Menus
+//	@Produce		json
+//	@Param			uuid	path		string	true	"Menu UUID"
+//	@Success		200		{object}	response.CustomApiResponse
+//	@Failure		400		{object}	response.CustomApiResponse
+//	@Failure		404		{object}	response.CustomApiResponse
+//	@Failure		500		{object}	response.CustomApiResponse
+//	@Security		BearerAuth
+//	@Router			/menus/{uuid} [delete]
 func (controller MenuController) Delete(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
