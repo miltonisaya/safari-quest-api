@@ -24,14 +24,14 @@ func toAuthorityResponse(authority models.Authority) AuthorityResponse {
 }
 
 type MenuInput struct {
-	Name          string     `json:"name" binding:"required"`
-	Type          string     `json:"type" binding:"required"`
-	Route         *string    `json:"route"`
-	Icon          *string    `json:"icon"`
-	AuthorityUUID uuid.UUID  `json:"authorityUuid" binding:"required"`
-	ParentID      *uint      `json:"parentId"`
-	SortOrder     int        `json:"sortOrder"`
-	Active        bool       `json:"active"`
+	Name          string    `json:"name" binding:"required"`
+	Type          string    `json:"type" binding:"required"`
+	Route         *string   `json:"route"`
+	Icon          *string   `json:"icon"`
+	AuthorityUUID uuid.UUID `json:"authorityUuid" binding:"required"`
+	ParentID      *uint     `json:"parentId"`
+	SortOrder     int       `json:"sortOrder"`
+	Active        bool      `json:"active"`
 }
 
 type MenuResponse struct {
