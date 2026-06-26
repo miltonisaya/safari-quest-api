@@ -115,7 +115,7 @@ func (controller UserController) Update(c *gin.Context) {
 		response.Fail(c, http.StatusBadRequest, "Invalid user UUID", nil)
 		return
 	}
-	var input services.UserInput
+	var input services.UserUpdateInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
