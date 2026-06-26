@@ -41,6 +41,16 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 			users.PUT("/:uuid", userController.Update)
 			users.DELETE("/:uuid", userController.Delete)
 		}
+
+		menuController := controllers.MenuController{}
+		menus := protected.Group("/menus")
+		{
+			menus.GET("", menuController.Index)
+			menus.POST("", menuController.Create)
+			menus.GET("/:uuid", menuController.Show)
+			menus.PUT("/:uuid", menuController.Update)
+			menus.DELETE("/:uuid", menuController.Delete)
+		}
 	}
 }
 
