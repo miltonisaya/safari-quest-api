@@ -24,6 +24,17 @@ type UserInput struct {
 	RoleIDs    []uuid.UUID `json:"role_ids" binding:"required,min=1"`
 }
 
+type UserUpdateInput struct {
+	FirstName  string      `json:"first_name" binding:"required"`
+	MiddleName string      `json:"middle_name"`
+	LastName   string      `json:"last_name" binding:"required"`
+	Email      string      `json:"email" binding:"required,email"`
+	Sex        string      `json:"sex" binding:"required"`
+	Mobile     string      `json:"mobile" binding:"required"`
+	Address    string      `json:"address" binding:"required"`
+	RoleIDs    []uuid.UUID `json:"role_ids" binding:"required,min=1"`
+}
+
 type UserResponse struct {
 	UUID            uuid.UUID      `json:"uuid"`
 	FirstName       string         `json:"first_name"`
@@ -123,7 +134,7 @@ func UserCreate(input UserInput) (UserResponse, error) {
 	return toUserResponse(user), nil
 }
 
-func UserUpdate(uuid uuid.UUID, input UserInput) (UserResponse, error) {
+func UserUpdate(uuid uuid.UUID, input UserUpdateInput) (UserResponse, error) {
 	user, err := repositories.UserFindByUUID(uuid)
 	if err != nil {
 		return UserResponse{}, err
