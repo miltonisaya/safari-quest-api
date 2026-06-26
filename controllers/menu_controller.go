@@ -13,150 +13,150 @@ import (
 	"gorm.io/gorm"
 )
 
-type RoleController struct{}
+type MenuController struct{}
 
 // Index godoc
-// @Summary      List roles
-// @Description  Return a paginated, searchable, and sortable list of roles
-// @Tags         Roles
+// @Summary      List menus
+// @Description  Return a paginated, searchable, and sortable list of menus
+// @Tags         Menus
 // @Produce      json
 // @Param        page     query int    false "Page number"          default(1)
 // @Param        per_page query int    false "Items per page"       default(15)
-// @Param        search   query string false "Search by name or code"
-// @Param        sort_by  query string false "Sort column: name, code, created_at, updated_at" default(created_at)
-// @Param        sort_dir query string false "Sort direction: asc or desc"                      default(asc)
-// @Success      200 {object} response.CustomApiResponse{data=pagination.Result[services.RoleResponse]}
+// @Param        search   query string false "Search by name"
+// @Param        sort_by  query string false "Sort column: name, sort_order, created_at, updated_at" default(created_at)
+// @Param        sort_dir query string false "Sort direction: asc or desc"                            default(asc)
+// @Success      200 {object} response.CustomApiResponse{data=pagination.Result[services.MenuResponse]}
 // @Failure      500 {object} response.CustomApiResponse
 // @Security     BearerAuth
-// @Router       /roles [get]
-func (controller RoleController) Index(c *gin.Context) {
+// @Router       /menus [get]
+func (controller MenuController) Index(c *gin.Context) {
 	params := pagination.FromContext(c)
-	roles, err := services.RoleGetAll(params)
+	menus, err := services.MenuGetAll(params)
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Failed to fetch roles")
+		response.Error(c, http.StatusInternalServerError, "Failed to fetch menus")
 		return
 	}
-	response.Success(c, http.StatusOK, "Roles retrieved", roles)
+	response.Success(c, http.StatusOK, "Menus retrieved", menus)
 }
 
 // Show godoc
-// @Summary      Get role
-// @Description  Return a single role by UUID
-// @Tags         Roles
+// @Summary      Get menu
+// @Description  Return a single menu by UUID
+// @Tags         Menus
 // @Produce      json
-// @Param        uuid path string true "Role UUID"
-// @Success      200 {object} response.CustomApiResponse{data=services.RoleResponse}
+// @Param        uuid path string true "Menu UUID"
+// @Success      200 {object} response.CustomApiResponse{data=services.MenuResponse}
 // @Failure      400 {object} response.CustomApiResponse
 // @Failure      404 {object} response.CustomApiResponse
 // @Failure      500 {object} response.CustomApiResponse
 // @Security     BearerAuth
-// @Router       /roles/{uuid} [get]
-func (controller RoleController) Show(c *gin.Context) {
+// @Router       /menus/{uuid} [get]
+func (controller MenuController) Show(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid authority UUID", nil)
+		response.Fail(c, http.StatusBadRequest, "Invalid menu UUID", nil)
 		return
 	}
-	authority, err := services.RoleGetByUUID(uid)
+	menu, err := services.MenuGetByUUID(uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response.Fail(c, http.StatusNotFound, "Role not found", nil)
+			response.Fail(c, http.StatusNotFound, "Menu not found", nil)
 			return
 		}
-		response.Error(c, http.StatusInternalServerError, "Failed to fetch role")
+		response.Error(c, http.StatusInternalServerError, "Failed to fetch menu")
 		return
 	}
-	response.Success(c, http.StatusOK, "Role retrieved", authority)
+	response.Success(c, http.StatusOK, "Menu retrieved", menu)
 }
 
 // Create godoc
-// @Summary      Create role
-// @Description  Create a new role
-// @Tags         Roles
+// @Summary      Create menu
+// @Description  Create a new menu
+// @Tags         Menus
 // @Accept       json
 // @Produce      json
-// @Param        body body services.RoleInput true "Role data"
-// @Success      201 {object} response.CustomApiResponse{data=services.RoleResponse}
+// @Param        body body services.MenuInput true "Menu data"
+// @Success      201 {object} response.CustomApiResponse{data=services.MenuResponse}
 // @Failure      400 {object} response.CustomApiResponse
 // @Failure      500 {object} response.CustomApiResponse
 // @Security     BearerAuth
-// @Router       /roles [post]
-func (controller RoleController) Create(c *gin.Context) {
-	var input services.RoleInput
+// @Router       /menus [post]
+func (controller MenuController) Create(c *gin.Context) {
+	var input services.MenuInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	role, err := services.RoleCreate(input)
+	menu, err := services.MenuCreate(input)
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Failed to create role")
+		response.Error(c, http.StatusInternalServerError, "Failed to create menu")
 		return
 	}
-	response.Success(c, http.StatusCreated, "Role created", role)
+	response.Success(c, http.StatusCreated, "Menu created", menu)
 }
 
 // Update godoc
-// @Summary      Update role
-// @Description  Update an existing role by UUID
-// @Tags         Roles
+// @Summary      Update menu
+// @Description  Update an existing menu by UUID
+// @Tags         Menus
 // @Accept       json
 // @Produce      json
-// @Param        uuid path string true "Role UUID"
-// @Param        body body services.RoleInput true "Role data"
-// @Success      200 {object} response.CustomApiResponse{data=services.RoleResponse}
+// @Param        uuid path string true "Menu UUID"
+// @Param        body body services.MenuInput true "Menu data"
+// @Success      200 {object} response.CustomApiResponse{data=services.MenuResponse}
 // @Failure      400 {object} response.CustomApiResponse
 // @Failure      404 {object} response.CustomApiResponse
 // @Failure      500 {object} response.CustomApiResponse
 // @Security     BearerAuth
-// @Router       /roles/{uuid} [put]
-func (controller RoleController) Update(c *gin.Context) {
+// @Router       /menus/{uuid} [put]
+func (controller MenuController) Update(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
+		response.Fail(c, http.StatusBadRequest, "Invalid menu UUID", nil)
 		return
 	}
-	var input services.RoleInput
+	var input services.MenuInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	role, err := services.RoleUpdate(uid, input)
+	menu, err := services.MenuUpdate(uid, input)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response.Fail(c, http.StatusNotFound, "Role not found", nil)
+			response.Fail(c, http.StatusNotFound, "Menu not found", nil)
 			return
 		}
-		response.Error(c, http.StatusInternalServerError, "Failed to update role")
+		response.Error(c, http.StatusInternalServerError, "Failed to update menu")
 		return
 	}
-	response.Success(c, http.StatusOK, "Role updated", role)
+	response.Success(c, http.StatusOK, "Menu updated", menu)
 }
 
 // Delete godoc
-// @Summary      Delete role
-// @Description  Soft-delete a role by UUID
-// @Tags         Roles
+// @Summary      Delete menu
+// @Description  Soft-delete a menu by UUID
+// @Tags         Menus
 // @Produce      json
-// @Param        uuid path string true "Role UUID"
+// @Param        uuid path string true "Menu UUID"
 // @Success      200 {object} response.CustomApiResponse
 // @Failure      400 {object} response.CustomApiResponse
 // @Failure      404 {object} response.CustomApiResponse
 // @Failure      500 {object} response.CustomApiResponse
 // @Security     BearerAuth
-// @Router       /roles/{uuid} [delete]
-func (controller RoleController) Delete(c *gin.Context) {
+// @Router       /menus/{uuid} [delete]
+func (controller MenuController) Delete(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
+		response.Fail(c, http.StatusBadRequest, "Invalid menu UUID", nil)
 		return
 	}
-	if err := services.RoleDelete(uid); err != nil {
+	if err := services.MenuDelete(uid); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			response.Fail(c, http.StatusNotFound, "Authority not found", nil)
+			response.Fail(c, http.StatusNotFound, "Menu not found", nil)
 			return
 		}
-		response.Error(c, http.StatusInternalServerError, "Failed to delete role")
+		response.Error(c, http.StatusInternalServerError, "Failed to delete menu")
 		return
 	}
-	response.Success(c, http.StatusOK, "Authority deleted", nil)
+	response.Success(c, http.StatusOK, "Menu deleted", nil)
 }
