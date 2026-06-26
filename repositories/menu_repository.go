@@ -8,55 +8,57 @@ import (
 	"github.com/google/uuid"
 )
 
-var roleSortColumns = map[string]string{
+var menuSortColumns = map[string]string{
 	"name":       "name",
-	"code":       "code",
+	"sort_order": "sort_order",
+	"route":      "route",
 	"created_at": "created_at",
 	"updated_at": "updated_at",
 }
 
-func RoleFindAll(params pagination.Params) ([]models.Role, int64, error) {
-	var roles []models.Role
+func MenuFindAll(params pagination.Params) ([]models.Menu, int64, error) {
+	var menus []models.Menu
 	var total int64
 
-	db := database.GORM_DB.Model(&models.Role{})
+	db := database.GORM_DB.Model(&models.Menu{})
 
 	if params.Search != "" {
 		term := "%" + params.Search + "%"
-		db = db.Where("name ILIKE ? OR code ILIKE ?", term, term)
+		db = db.Where("name ILIKE ?", term)
 	}
 
 	db.Count(&total)
 
 	result := db.
-		Order(params.OrderClause(roleSortColumns, "created_at")).
+		Preload("Authority").
+		Order(params.OrderClause(menuSortColumns, "created_at")).
 		Offset(params.Offset()).
 		Limit(params.PerPage).
-		Find(&roles)
+		Find(&menus)
 
-	return roles, total, result.Error
+	return menus, total, result.Error
 }
 
-func RoleFindByUUID(uuid uuid.UUID) (models.Role, error) {
-	var role models.Role
-	result := database.GORM_DB.First(&role, "uuid = ?", uuid)
-	return role, result.Error
+func MenuFindByUUID(uuid uuid.UUID) (models.Menu, error) {
+	var menu models.Menu
+	result := database.GORM_DB.Preload("Authority").First(&menu, "uuid = ?", uuid)
+	return menu, result.Error
 }
 
-func RoleCreate(role *models.Role) error {
-	return database.GORM_DB.Create(role).Error
+func MenuCreate(menu *models.Menu) error {
+	return database.GORM_DB.Create(menu).Error
 }
 
-func RoleUpdate(role *models.Role) error {
-	return database.GORM_DB.Save(role).Error
+func MenuUpdate(menu *models.Menu) error {
+	return database.GORM_DB.Save(menu).Error
 }
 
-func RoleDelete(uuid uuid.UUID) error {
-	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.Role{}).Error
+func MenuDelete(uuid uuid.UUID) error {
+	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.Menu{}).Error
 }
 
-func RoleFindByUUIDs(uuids []uuid.UUID) ([]models.Role, error) {
-	var roles []models.Role
-	result := database.GORM_DB.Where("uuid IN ?", uuids).Find(&roles)
-	return roles, result.Error
+func MenuFindByUUIDs(uuids []uuid.UUID) ([]models.Menu, error) {
+	var menus []models.Menu
+	result := database.GORM_DB.Where("uuid IN ?", uuids).Find(&menus)
+	return menus, result.Error
 }
