@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"safari-quest-api/models"
@@ -17,7 +18,6 @@ type UserInput struct {
 	MiddleName string      `json:"middle_name"`
 	LastName   string      `json:"last_name" binding:"required"`
 	Email      string      `json:"email" binding:"required,email"`
-	Password   string      `json:"password" binding:"required,min=8"`
 	Sex        string      `json:"sex" binding:"required"`
 	Mobile     string      `json:"mobile" binding:"required"`
 	Address    string      `json:"address" binding:"required"`
@@ -113,7 +113,8 @@ func UserCreate(input UserInput) (UserResponse, error) {
 		return UserResponse{}, err
 	}
 
-	hashed, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	var defaultPassword = os.Getenv("DEFAULT_PASSWORD")
+	hashed, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return UserResponse{}, err
 	}
