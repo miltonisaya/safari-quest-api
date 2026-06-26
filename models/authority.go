@@ -9,16 +9,18 @@ import (
 
 type Authority struct {
 	ID        uint           `gorm:"primaryKey;autoIncrement" json:"-"`
-	UUID      uuid.UUID      `gorm:"type:uuid;uniqueIndex;not null" json:"-"`
-	Name      string         `gorm:"uniqueIndex;not null" json:"-"`
-	Code      string         `gorm:"uniqueIndex;not null" json:"-"`
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
+	UUID      uuid.UUID      `gorm:"type:uuid;uniqueIndex;not null" json:"uuid"`
+	Name      string         `gorm:"uniqueIndex;not null" json:"name"`
+	Code      string         `gorm:"uniqueIndex;not null" json:"code"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Roles     []Role         `gorm:"many2many:role_authorities;" json:"-"`
+	Roles     []Role         `gorm:"many2many:role_authorities;" json:"roles"`
 }
 
 func (a *Authority) BeforeCreate(tx *gorm.DB) error {
-	a.UUID = uuid.New()
+	if a.UUID == uuid.Nil {
+		a.UUID = uuid.New()
+	}
 	return nil
 }
