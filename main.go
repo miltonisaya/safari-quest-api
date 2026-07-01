@@ -40,7 +40,7 @@ func main() {
 	}
 
 	router := gin.New()
-	router.Use(middlewares.Recovery(), middlewares.Logger())
+	router.Use(middlewares.Recovery(), middlewares.Logger(), middlewares.CorsConfig())
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
