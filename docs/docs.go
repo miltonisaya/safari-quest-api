@@ -1259,6 +1259,12 @@ const docTemplate = `{
         "services.LoginResponse": {
             "type": "object",
             "properties": {
+                "authorities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.AuthorityListResponse"
+                    }
+                },
                 "token": {
                     "type": "string"
                 },
