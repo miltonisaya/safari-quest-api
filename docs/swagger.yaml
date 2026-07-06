@@ -97,6 +97,10 @@ definitions:
     type: object
   services.LoginResponse:
     properties:
+      authorities:
+        items:
+          $ref: '#/definitions/services.AuthorityListResponse'
+        type: array
       token:
         type: string
       user:
