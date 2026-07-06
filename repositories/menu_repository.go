@@ -20,7 +20,7 @@ func MenuFindAll(params pagination.Params) ([]models.Menu, int64, error) {
 	var menus []models.Menu
 	var total int64
 
-	db := database.GORM_DB.Model(&models.Menu{})
+	db := database.GORM_DB.Model(&models.Menu{}).Where("parent_id IS NULL")
 
 	if params.Search != "" {
 		term := "%" + params.Search + "%"
@@ -31,6 +31,7 @@ func MenuFindAll(params pagination.Params) ([]models.Menu, int64, error) {
 
 	result := db.
 		Preload("Authority").
+		Preload("Children.Authority").
 		Order(params.OrderClause(menuSortColumns, "created_at")).
 		Offset(params.Offset()).
 		Limit(params.PerPage).
@@ -41,7 +42,7 @@ func MenuFindAll(params pagination.Params) ([]models.Menu, int64, error) {
 
 func MenuFindByUUID(uuid uuid.UUID) (models.Menu, error) {
 	var menu models.Menu
-	result := database.GORM_DB.Preload("Authority").First(&menu, "uuid = ?", uuid)
+	result := database.GORM_DB.Preload("Authority").Preload("Children.Authority").First(&menu, "uuid = ?", uuid)
 	return menu, result.Error
 }
 
