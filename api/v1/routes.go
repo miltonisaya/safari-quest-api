@@ -51,6 +51,12 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 			menus.PUT("/:uuid", menuController.Update)
 			menus.DELETE("/:uuid", menuController.Delete)
 		}
+
+		authorityController := controllers.AuthorityController{}
+		authorities := protected.Group("/authorities")
+		{
+			authorities.GET("", authorityController.Index)
+		}
 	}
 }
 
