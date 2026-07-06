@@ -48,7 +48,7 @@ func UserFindByUUID(uuid uuid.UUID) (models.User, error) {
 
 func UserFindByEmail(email string) (models.User, error) {
 	var user models.User
-	result := database.GORM_DB.Preload("Roles").Where("email = ?", email).First(&user)
+	result := database.GORM_DB.Preload("Roles.Authorities").Where("email = ?", email).First(&user)
 	return user, result.Error
 }
 
