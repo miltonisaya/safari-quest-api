@@ -49,8 +49,11 @@ func main() {
 		v1.RegisterRoutes(api.Group("/v1"))
 	}
 
-	// Seeders run after routes are registered so router.Routes() returns the
-	// full list. Controlled by SEED=true in .env so it only runs when needed.
+	// SyncAuthorities always runs so new routes are seeded and granted to the
+	// Administrator role on every boot without manual intervention.
+	seeders.SyncAuthorities(router)
+
+	// Run the full seeder (super admin user creation) only when SEED=true.
 	if config.App.Seed {
 		seeders.Run(router)
 	}
