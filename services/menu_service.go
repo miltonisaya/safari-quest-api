@@ -43,11 +43,16 @@ type MenuResponse struct {
 	SortOrder int               `json:"sortOrder"`
 	Active    bool              `json:"active"`
 	Authority AuthorityResponse `json:"authority"`
+	Children  []MenuResponse    `json:"children,omitempty"`
 	CreatedAt time.Time         `json:"created_at"`
 	UpdatedAt time.Time         `json:"updated_at"`
 }
 
 func toMenuResponse(menu models.Menu) MenuResponse {
+	children := make([]MenuResponse, len(menu.Children))
+	for i, child := range menu.Children {
+		children[i] = toMenuResponse(child)
+	}
 	return MenuResponse{
 		UUID:      menu.UUID,
 		Name:      menu.Name,
@@ -57,6 +62,7 @@ func toMenuResponse(menu models.Menu) MenuResponse {
 		SortOrder: menu.SortOrder,
 		Active:    menu.Active,
 		Authority: toAuthorityResponse(menu.Authority),
+		Children:  children,
 		CreatedAt: menu.CreatedAt,
 		UpdatedAt: menu.UpdatedAt,
 	}
