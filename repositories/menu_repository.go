@@ -6,6 +6,7 @@ import (
 	"safari-quest-api/pkg/pagination"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 var menuSortColumns = map[string]string{
@@ -31,8 +32,11 @@ func MenuFindAll(params pagination.Params) ([]models.Menu, int64, error) {
 
 	result := db.
 		Preload("Authority").
+		Preload("Children", func(db *gorm.DB) *gorm.DB {
+			return db.Order("sort_order ASC")
+		}).
 		Preload("Children.Authority").
-		Order(params.OrderClause(menuSortColumns, "created_at")).
+		Order(params.OrderClause(menuSortColumns, "sort_order")).
 		Offset(params.Offset()).
 		Limit(params.PerPage).
 		Find(&menus)
@@ -42,7 +46,20 @@ func MenuFindAll(params pagination.Params) ([]models.Menu, int64, error) {
 
 func MenuFindByUUID(uuid uuid.UUID) (models.Menu, error) {
 	var menu models.Menu
-	result := database.GORM_DB.Preload("Authority").Preload("Children.Authority").First(&menu, "uuid = ?", uuid)
+	result := database.GORM_DB.
+		Preload("Authority").
+		Preload("Parent").
+		Preload("Children", func(db *gorm.DB) *gorm.DB {
+			return db.Order("sort_order ASC")
+		}).
+		Preload("Children.Authority").
+		First(&menu, "uuid = ?", uuid)
+	return menu, result.Error
+}
+
+func MenuFindParentByUUID(uuid uuid.UUID) (models.Menu, error) {
+	var menu models.Menu
+	result := database.GORM_DB.Select("id, uuid").First(&menu, "uuid = ?", uuid)
 	return menu, result.Error
 }
 
