@@ -79,6 +79,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/authorities": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Return all authorities",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorities"
+                ],
+                "summary": "List authorities",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/services.AuthorityListResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/menus": {
             "get": {
                 "security": [
@@ -1161,6 +1207,26 @@ const docTemplate = `{
                 "StatusError"
             ]
         },
+        "services.AuthorityListResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
         "services.AuthorityResponse": {
             "type": "object",
             "properties": {
@@ -1243,6 +1309,12 @@ const docTemplate = `{
                 },
                 "authority": {
                     "$ref": "#/definitions/services.AuthorityResponse"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.MenuResponse"
+                    }
                 },
                 "created_at": {
                     "type": "string"
