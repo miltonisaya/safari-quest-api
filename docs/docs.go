@@ -1293,8 +1293,8 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "parentId": {
-                    "type": "integer"
+                "parentUuid": {
+                    "type": "string"
                 },
                 "route": {
                     "type": "string"
@@ -1328,7 +1328,13 @@ const docTemplate = `{
                 "icon": {
                     "type": "string"
                 },
+                "level": {
+                    "type": "integer"
+                },
                 "name": {
+                    "type": "string"
+                },
+                "parentUuid": {
                     "type": "string"
                 },
                 "route": {
