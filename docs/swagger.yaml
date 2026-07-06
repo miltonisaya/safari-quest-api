@@ -116,8 +116,8 @@ definitions:
         type: string
       name:
         type: string
-      parentId:
-        type: integer
+      parentUuid:
+        type: string
       route:
         type: string
       sortOrder:
@@ -143,7 +143,11 @@ definitions:
         type: string
       icon:
         type: string
+      level:
+        type: integer
       name:
+        type: string
+      parentUuid:
         type: string
       route:
         type: string
