@@ -25,8 +25,9 @@ type LoginInput struct {
 }
 
 type LoginResponse struct {
-	Token string       `json:"token"`
-	User  UserResponse `json:"user"`
+	Token       string                  `json:"token"`
+	User        UserResponse            `json:"user"`
+	Authorities []AuthorityListResponse `json:"authorities"`
 }
 
 // Login validates the provided credentials and, on success, returns a signed JWT
@@ -63,8 +64,26 @@ func Login(input LoginInput) (LoginResponse, error) {
 		return LoginResponse{}, err
 	}
 
+	seen := make(map[string]bool)
+	var authorities []AuthorityListResponse
+	for _, role := range user.Roles {
+		for _, a := range role.Authorities {
+			if !seen[a.Code] {
+				seen[a.Code] = true
+				authorities = append(authorities, AuthorityListResponse{
+					UUID:      a.UUID,
+					Name:      a.Name,
+					Code:      a.Code,
+					CreatedAt: a.CreatedAt,
+					UpdatedAt: a.UpdatedAt,
+				})
+			}
+		}
+	}
+
 	return LoginResponse{
-		Token: tokenStr,
-		User:  toUserResponse(user),
+		Token:       tokenStr,
+		User:        toUserResponse(user),
+		Authorities: authorities,
 	}, nil
 }
