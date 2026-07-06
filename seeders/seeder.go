@@ -13,10 +13,19 @@ import (
 	"gorm.io/gorm"
 )
 
-// Run seeds the database in dependency order:
-//  1. Authorities — derived automatically from the registered routes
-//  2. Administrator role — granted every authority
-//  3. Super admin user — assigned the Administrator role
+// SyncAuthorities always runs on startup. It discovers all registered routes,
+// upserts their authority codes into the DB, and ensures the Administrator role
+// holds every authority. This is idempotent — safe to run on every boot.
+func SyncAuthorities(router *gin.Engine) {
+	log.Println("[seeder] syncing authorities...")
+	authorities := seedAuthorities(router)
+	seedAdminRole(authorities)
+	log.Println("[seeder] authority sync done")
+}
+
+// Run seeds the super admin user and assigns them the Administrator role.
+// It must be called after SyncAuthorities so the role already exists.
+// Controlled by SEED=true in .env — only needed on first boot or reset.
 func Run(router *gin.Engine) {
 	log.Println("[seeder] starting...")
 	authorities := seedAuthorities(router)
