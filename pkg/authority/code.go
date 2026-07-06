@@ -9,8 +9,8 @@ import (
 
 // DeriveCode builds the authority code from a route method and its full path
 // pattern (e.g. "/api/v1/roles/:uuid"). The code follows the convention
-// {resource}_{action} where resource is the singularised URL segment and action
-// is resolved from the HTTP method and whether a path parameter is present.
+// {resource}_{verb} where resource is the singularised URL segment and verb
+// is the lowercase HTTP method (get, post, put, delete).
 //
 // Returns an empty string if the code cannot be determined (e.g. unknown method).
 func DeriveCode(method, fullPath string) string {
@@ -30,25 +30,22 @@ func DeriveCode(method, fullPath string) string {
 	}
 
 	resource := inflection.Singular(segments[resourceIdx])
-	action := resolveAction(method, hasParam)
-	if action == "" {
+	verb := resolveVerb(method)
+	if verb == "" {
 		return ""
 	}
 
-	return resource + "_" + action
+	return resource + "_" + verb
 }
 
-func resolveAction(method string, hasParam bool) string {
+func resolveVerb(method string) string {
 	switch method {
 	case http.MethodGet:
-		if hasParam {
-			return "show"
-		}
-		return "index"
+		return "get"
 	case http.MethodPost:
-		return "create"
+		return "post"
 	case http.MethodPut, http.MethodPatch:
-		return "update"
+		return "put"
 	case http.MethodDelete:
 		return "delete"
 	default:
