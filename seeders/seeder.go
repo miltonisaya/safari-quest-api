@@ -1,6 +1,7 @@
 package seeders
 
 import (
+	"errors"
 	"log"
 
 	"safari-quest-api/config"
@@ -75,10 +76,18 @@ func seedAdminRole(authorities []models.Authority) models.Role {
 	log.Println("[seeder] seeding Administrator role...")
 
 	var role models.Role
-	database.GORM_DB.Where("code = ?", "Administrator").FirstOrCreate(&role, models.Role{
-		Name: "Administrator",
-		Code: "Administrator",
-	})
+	err := database.GORM_DB.Where("name = ?", "Administrator").First(&role).Error
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Printf("[seeder] error looking up Administrator role: %v\n", err)
+			return role
+		}
+		role = models.Role{Name: "Administrator", Code: "ADMINISTRATOR"}
+		if err := database.GORM_DB.Create(&role).Error; err != nil {
+			log.Printf("[seeder] error creating Administrator role: %v\n", err)
+			return role
+		}
+	}
 
 	if err := database.GORM_DB.Session(&gorm.Session{FullSaveAssociations: false}).
 		Model(&role).Association("Authorities").Replace(authorities); err != nil {
