@@ -63,6 +63,19 @@ definitions:
     - StatusSuccess
     - StatusFail
     - StatusError
+  services.AuthorityListResponse:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
   services.AuthorityResponse:
     properties:
       code:
@@ -118,6 +131,10 @@ definitions:
         type: boolean
       authority:
         $ref: '#/definitions/services.AuthorityResponse'
+      children:
+        items:
+          $ref: '#/definitions/services.MenuResponse'
+        type: array
       created_at:
         type: string
       icon:
@@ -261,6 +278,32 @@ paths:
       summary: Login
       tags:
       - Auth
+  /authorities:
+    get:
+      description: Return all authorities
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/services.AuthorityListResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List authorities
+      tags:
+      - Authorities
   /menus:
     get:
       description: Return a paginated, searchable, and sortable list of menus
