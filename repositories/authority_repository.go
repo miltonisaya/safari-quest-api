@@ -30,3 +30,9 @@ func AuthorityUpdate(authority *models.Authority) error {
 func AuthorityDelete(uuid uuid.UUID) error {
 	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.Authority{}).Error
 }
+
+func AuthorityFindByUUIDs(uuids []uuid.UUID) ([]models.Authority, error) {
+	var authorities []models.Authority
+	result := database.GORM_DB.Where("uuid IN ?", uuids).Find(&authorities)
+	return authorities, result.Error
+}
