@@ -43,6 +43,12 @@ func RoleFindByUUID(uuid uuid.UUID) (models.Role, error) {
 	return role, result.Error
 }
 
+func RoleFindByUUIDWithAuthorities(uuid uuid.UUID) (models.Role, error) {
+	var role models.Role
+	result := database.GORM_DB.Preload("Authorities").First(&role, "uuid = ?", uuid)
+	return role, result.Error
+}
+
 func RoleCreate(role *models.Role) error {
 	return database.GORM_DB.Create(role).Error
 }
