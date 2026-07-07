@@ -10,6 +10,7 @@ import (
 	"safari-quest-api/database"
 	"safari-quest-api/middlewares"
 	"safari-quest-api/seeders"
+	ws "safari-quest-api/websocket"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -38,6 +39,9 @@ func main() {
 	if err := database.RunMigrations(); err != nil {
 		log.Fatalf("migrations failed: %v", err)
 	}
+
+	// Start the WebSocket hub before any connections can arrive.
+	go ws.GlobalHub.Run()
 
 	router := gin.New()
 	router.Use(middlewares.Recovery(), middlewares.Logger(), middlewares.CorsConfig())
