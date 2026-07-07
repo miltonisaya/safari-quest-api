@@ -20,14 +20,19 @@ import (
 // On failure it aborts with 401 so the handler is never reached.
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// WebSocket clients cannot set headers, so also accept the token via
+		// the ?token= query parameter as a fallback.
+		var tokenStr string
 		header := c.GetHeader("Authorization")
-		if header == "" || !strings.HasPrefix(header, "Bearer ") {
+		if strings.HasPrefix(header, "Bearer ") {
+			tokenStr = strings.TrimPrefix(header, "Bearer ")
+		} else if q := c.Query("token"); q != "" {
+			tokenStr = q
+		} else {
 			response.Fail(c, http.StatusUnauthorized, "Authorization header missing or malformed", nil)
 			c.Abort()
 			return
 		}
-
-		tokenStr := strings.TrimPrefix(header, "Bearer ")
 
 		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
