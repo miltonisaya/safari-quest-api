@@ -7,19 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
-type GeographyType struct {
-	ID          uint           `gorm:"primaryKey;autoIncrement" json:"-"`
-	UUID        uuid.UUID      `gorm:"type:uuid;uniqueIndex;not null" json:"-"`
-	Name        string         `gorm:"uniqueIndex;not null" json:"-"`
-	Code        string         `gorm:"uniqueIndex;not null" json:"-"`
-	CreatedAt   time.Time      `json:"-"`
-	UpdatedAt   time.Time      `json:"-"`
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
-	Authorities []Authority    `gorm:"many2many:role_authorities;" json:"-"`
-	Users       []User         `gorm:"many2many:user_roles;" json:"-"`
+type Geography struct {
+	ID              uint           `gorm:"primaryKey;autoIncrement" json:"-"`
+	UUID            uuid.UUID      `gorm:"type:uuid;uniqueIndex;not null" json:"-"`
+	Name            string         `gorm:"uniqueIndex;not null" json:"-"`
+	Code            string         `gorm:"uniqueIndex;not null" json:"-"`
+	GeographyTypeID uint           `gorm:"column:geography_type_id;not null" json:"geographyTypeId"`
+	CreatedAt       time.Time      `json:"-"`
+	UpdatedAt       time.Time      `json:"-"`
+	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-func (r *Role) BeforeCreate(tx *gorm.DB) error {
+func (r *Geography) BeforeCreate(tx *gorm.DB) error {
 	r.UUID = uuid.New()
 	return nil
 }
