@@ -16,6 +16,24 @@ definitions:
       total:
         type: integer
     type: object
+  pagination.Result-services_GeographyResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/services.GeographyResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  pagination.Result-services_GeographyTypeResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/services.GeographyTypeResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
   pagination.Result-services_MenuResponse:
     properties:
       items:
@@ -81,6 +99,67 @@ definitions:
       code:
         type: string
       name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  services.GeographyInput:
+    properties:
+      code:
+        type: string
+      geographyTypeUuid:
+        type: string
+      name:
+        type: string
+      parentUuid:
+        type: string
+    required:
+    - code
+    - geographyTypeUuid
+    - name
+    type: object
+  services.GeographyResponse:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/services.GeographyResponse'
+        type: array
+      code:
+        type: string
+      created_at:
+        type: string
+      geographyType:
+        $ref: '#/definitions/services.GeographyTypeResponse'
+      level:
+        type: integer
+      name:
+        type: string
+      parentUuid:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  services.GeographyTypeInput:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  services.GeographyTypeResponse:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      updated_at:
         type: string
       uuid:
         type: string
@@ -322,6 +401,417 @@ paths:
       summary: List authorities
       tags:
       - Authorities
+  /geographies:
+    get:
+      description: Return a paginated list of geographies. Pass parent_uuid to fetch
+        children of a specific geography; omit it to fetch top-level geographies.
+      parameters:
+      - description: Parent geography UUID — omit to return top-level geographies
+        in: query
+        name: parent_uuid
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: 'Sort column: name, code, created_at, updated_at'
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-services_GeographyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List geographies
+      tags:
+      - Geographies
+    post:
+      consumes:
+      - application/json
+      description: Create a new geography. Provide parentUuid to nest it under an
+        existing geography.
+      parameters:
+      - description: Geography data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/services.GeographyInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.GeographyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Create geography
+      tags:
+      - Geographies
+  /geographies/{uuid}:
+    delete:
+      description: Soft-delete a geography by UUID
+      parameters:
+      - description: Geography UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete geography
+      tags:
+      - Geographies
+    get:
+      description: Return a single geography by UUID, including its direct children
+      parameters:
+      - description: Geography UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.GeographyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get geography
+      tags:
+      - Geographies
+    put:
+      consumes:
+      - application/json
+      description: Update an existing geography by UUID
+      parameters:
+      - description: Geography UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Geography data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/services.GeographyInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.GeographyResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update geography
+      tags:
+      - Geographies
+  /geography-types:
+    get:
+      description: Return a paginated, searchable, and sortable list of geography
+        types
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: 'Sort column: name, code, created_at, updated_at'
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-services_GeographyTypeResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List geography types
+      tags:
+      - Geography Types
+    post:
+      consumes:
+      - application/json
+      description: Create a new geography type
+      parameters:
+      - description: Geography type data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/services.GeographyTypeInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.GeographyTypeResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Create geography type
+      tags:
+      - Geography Types
+  /geography-types/{uuid}:
+    delete:
+      description: Soft-delete a geography type by UUID
+      parameters:
+      - description: Geography type UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete geography type
+      tags:
+      - Geography Types
+    get:
+      description: Return a single geography type by UUID
+      parameters:
+      - description: Geography type UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.GeographyTypeResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get geography type
+      tags:
+      - Geography Types
+    put:
+      consumes:
+      - application/json
+      description: Update an existing geography type by UUID
+      parameters:
+      - description: Geography type UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Geography type data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/services.GeographyTypeInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/services.GeographyTypeResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update geography type
+      tags:
+      - Geography Types
   /menus:
     get:
       description: Return a paginated, searchable, and sortable list of menus
