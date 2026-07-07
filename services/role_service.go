@@ -6,6 +6,7 @@ import (
 	"safari-quest-api/models"
 	"safari-quest-api/pkg/pagination"
 	"safari-quest-api/repositories"
+	ws "safari-quest-api/websocket"
 
 	"github.com/google/uuid"
 )
@@ -64,7 +65,9 @@ func RoleCreate(input RoleInput) (RoleResponse, error) {
 	if err := repositories.RoleCreate(&role); err != nil {
 		return RoleResponse{}, err
 	}
-	return toRoleResponse(role), nil
+	resp := toRoleResponse(role)
+	ws.GlobalHub.Publish(ws.Event{Entity: "role", Action: ws.ActionCreated, Payload: resp})
+	return resp, nil
 }
 
 func RoleUpdate(uuid uuid.UUID, input RoleInput) (RoleResponse, error) {
@@ -77,9 +80,15 @@ func RoleUpdate(uuid uuid.UUID, input RoleInput) (RoleResponse, error) {
 	if err := repositories.RoleUpdate(&role); err != nil {
 		return RoleResponse{}, err
 	}
-	return toRoleResponse(role), nil
+	resp := toRoleResponse(role)
+	ws.GlobalHub.Publish(ws.Event{Entity: "role", Action: ws.ActionUpdated, Payload: resp})
+	return resp, nil
 }
 
 func RoleDelete(uuid uuid.UUID) error {
-	return repositories.RoleDelete(uuid)
+	if err := repositories.RoleDelete(uuid); err != nil {
+		return err
+	}
+	ws.GlobalHub.Publish(ws.Event{Entity: "role", Action: ws.ActionDeleted, Payload: map[string]string{"uuid": uuid.String()}})
+	return nil
 }
