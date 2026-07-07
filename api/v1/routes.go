@@ -17,6 +17,12 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	authController := controllers.AuthController{}
 	rg.POST("/auth/login", authController.Login)
 
+	// WebSocket — requires a valid JWT passed as ?token=<jwt> query param.
+	// Not behind Authorize() because it is a persistent connection, not a
+	// discrete resource action.
+	wsController := controllers.WSController{}
+	rg.GET("/ws", middlewares.Auth(), wsController.Connect)
+
 	// Protected routes — Auth() validates the JWT and Authorize() automatically
 	// derives the required authority code from the route pattern and HTTP method,
 	// then checks the user holds it via their roles. No per-route configuration needed.
