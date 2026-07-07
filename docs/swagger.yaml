@@ -912,6 +912,31 @@ paths:
       summary: Update user
       tags:
       - Users
+  /ws:
+    get:
+      description: 'Upgrades the HTTP connection to WebSocket. The client will receive
+        real-time events whenever a menu, role, or user is created, updated, or deleted.
+        Pass the JWT as a query parameter: ?token=<jwt>'
+      parameters:
+      - description: Bearer token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      summary: Open WebSocket connection
+      tags:
+      - WebSocket
 securityDefinitions:
   BearerAuth:
     description: 'Enter: Bearer {token}'
