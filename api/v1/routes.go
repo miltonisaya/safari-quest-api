@@ -36,6 +36,8 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 			roles.GET("/:uuid", roleController.Show)
 			roles.PUT("/:uuid", roleController.Update)
 			roles.DELETE("/:uuid", roleController.Delete)
+			roles.GET("/:uuid/authorities", roleController.Authorities)
+			roles.PUT("/:uuid/authorities", roleController.UpdateAuthorities)
 		}
 
 		userController := controllers.UserController{}
@@ -56,6 +58,26 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 			menus.GET("/:uuid", menuController.Show)
 			menus.PUT("/:uuid", menuController.Update)
 			menus.DELETE("/:uuid", menuController.Delete)
+		}
+
+		geographyTypeController := controllers.GeographyTypeController{}
+		geographyTypes := protected.Group("/geography-types")
+		{
+			geographyTypes.GET("", geographyTypeController.Index)
+			geographyTypes.POST("", geographyTypeController.Create)
+			geographyTypes.GET("/:uuid", geographyTypeController.Show)
+			geographyTypes.PUT("/:uuid", geographyTypeController.Update)
+			geographyTypes.DELETE("/:uuid", geographyTypeController.Delete)
+		}
+
+		geographyController := controllers.GeographyController{}
+		geographies := protected.Group("/geographies")
+		{
+			geographies.GET("", geographyController.Index)
+			geographies.POST("", geographyController.Create)
+			geographies.GET("/:uuid", geographyController.Show)
+			geographies.PUT("/:uuid", geographyController.Update)
+			geographies.DELETE("/:uuid", geographyController.Delete)
 		}
 
 		authorityController := controllers.AuthorityController{}
