@@ -12,25 +12,28 @@ import (
 )
 
 type GeographyInput struct {
-	Name string `json:"name" binding:"required"`
-	Code string `json:"code" binding:"required"`
+	Name              string    `json:"name" binding:"required"`
+	Code              string    `json:"code" binding:"required"`
+	GeographyTypeUuid uuid.UUID `json:"geographyTypeUuid" binding:"required"`
 }
 
 type GeographyResponse struct {
-	UUID      uuid.UUID `json:"uuid"`
-	Name      string    `json:"name"`
-	Code      string    `json:"code"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UUID          uuid.UUID             `json:"uuid"`
+	Name          string                `json:"name"`
+	Code          string                `json:"code"`
+	GeographyType GeographyTypeResponse `json:"geographyType"`
+	CreatedAt     time.Time             `json:"created_at"`
+	UpdatedAt     time.Time             `json:"updated_at"`
 }
 
-func toGeographyResponse(role models.Geography) GeographyResponse {
+func toGeographyResponse(geography models.Geography) GeographyResponse {
 	return GeographyResponse{
-		UUID:      role.UUID,
-		Name:      role.Name,
-		Code:      role.Code,
-		CreatedAt: role.CreatedAt,
-		UpdatedAt: role.UpdatedAt,
+		UUID:          geography.UUID,
+		Name:          geography.Name,
+		Code:          geography.Code,
+		GeographyType: toGeographyTypeResponse(geography.GeographyType),
+		CreatedAt:     geography.CreatedAt,
+		UpdatedAt:     geography.UpdatedAt,
 	}
 }
 
@@ -58,15 +61,21 @@ func GeographyGetByUUID(uuid uuid.UUID) (GeographyResponse, error) {
 }
 
 func GeographyCreate(input GeographyInput) (GeographyResponse, error) {
+	geographyType, err := repositories.GeographyTypeFindByUUID(input.GeographyTypeUuid)
+	if err != nil {
+		return GeographyResponse{}, err
+	}
 	geography := models.Geography{
-		Name: input.Name,
-		Code: input.Code,
+		Name:            input.Name,
+		Code:            input.Code,
+		GeographyTypeID: geographyType.ID,
 	}
 	if err := repositories.GeographyCreate(&geography); err != nil {
 		return GeographyResponse{}, err
 	}
+	geography.GeographyType = geographyType
 	resp := toGeographyResponse(geography)
-	ws.GlobalHub.Publish(ws.Event{Entity: "role", Action: ws.ActionCreated, Payload: resp})
+	ws.GlobalHub.Publish(ws.Event{Entity: "geography", Action: ws.ActionCreated, Payload: resp})
 	return resp, nil
 }
 
@@ -75,11 +84,17 @@ func GeographyUpdate(uuid uuid.UUID, input GeographyInput) (GeographyResponse, e
 	if err != nil {
 		return GeographyResponse{}, err
 	}
+	geographyType, err := repositories.GeographyTypeFindByUUID(input.GeographyTypeUuid)
+	if err != nil {
+		return GeographyResponse{}, err
+	}
 	geography.Name = input.Name
 	geography.Code = input.Code
+	geography.GeographyTypeID = geographyType.ID
 	if err := repositories.GeographyUpdate(&geography); err != nil {
 		return GeographyResponse{}, err
 	}
+	geography.GeographyType = geographyType
 	resp := toGeographyResponse(geography)
 	ws.GlobalHub.Publish(ws.Event{Entity: "geography", Action: ws.ActionUpdated, Payload: resp})
 	return resp, nil
