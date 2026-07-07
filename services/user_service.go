@@ -8,6 +8,7 @@ import (
 	"safari-quest-api/models"
 	"safari-quest-api/pkg/pagination"
 	"safari-quest-api/repositories"
+	ws "safari-quest-api/websocket"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -132,7 +133,9 @@ func UserCreate(input UserInput) (UserResponse, error) {
 	if err := repositories.UserCreate(&user, roles); err != nil {
 		return UserResponse{}, err
 	}
-	return toUserResponse(user), nil
+	resp := toUserResponse(user)
+	ws.GlobalHub.Publish(ws.Event{Entity: "user", Action: ws.ActionCreated, Payload: resp})
+	return resp, nil
 }
 
 func UserUpdate(uuid uuid.UUID, input UserUpdateInput) (UserResponse, error) {
@@ -158,9 +161,15 @@ func UserUpdate(uuid uuid.UUID, input UserUpdateInput) (UserResponse, error) {
 		return UserResponse{}, err
 	}
 	user.Roles = roles
-	return toUserResponse(user), nil
+	resp := toUserResponse(user)
+	ws.GlobalHub.Publish(ws.Event{Entity: "user", Action: ws.ActionUpdated, Payload: resp})
+	return resp, nil
 }
 
 func UserDelete(uuid uuid.UUID) error {
-	return repositories.UserDelete(uuid)
+	if err := repositories.UserDelete(uuid); err != nil {
+		return err
+	}
+	ws.GlobalHub.Publish(ws.Event{Entity: "user", Action: ws.ActionDeleted, Payload: map[string]string{"uuid": uuid.String()}})
+	return nil
 }
