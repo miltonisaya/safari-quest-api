@@ -12,8 +12,11 @@ type Geography struct {
 	UUID            uuid.UUID      `gorm:"type:uuid;uniqueIndex;not null" json:"-"`
 	Name            string         `gorm:"uniqueIndex;not null" json:"-"`
 	Code            string         `gorm:"uniqueIndex;not null" json:"-"`
-	GeographyTypeID uint           `gorm:"column:geography_type_id;not null" json:"geographyTypeId"`
+	GeographyTypeID uint           `gorm:"column:geography_type_id;not null" json:"-"`
 	GeographyType   GeographyType  `gorm:"foreignKey:GeographyTypeID"`
+	ParentID        *uint          `gorm:"index" json:"-"`
+	Parent          *Geography     `gorm:"foreignKey:ParentID" json:"-"`
+	Children        []Geography    `gorm:"foreignKey:ParentID" json:"-"`
 	CreatedAt       time.Time      `json:"-"`
 	UpdatedAt       time.Time      `json:"-"`
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
