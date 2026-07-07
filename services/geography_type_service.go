@@ -11,12 +11,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type GeographyInput struct {
+type GeographyTypeInput struct {
 	Name string `json:"name" binding:"required"`
 	Code string `json:"code" binding:"required"`
 }
 
-type GeographyResponse struct {
+type GeographyTypeResponse struct {
 	UUID      uuid.UUID `json:"uuid"`
 	Name      string    `json:"name"`
 	Code      string    `json:"code"`
@@ -24,8 +24,8 @@ type GeographyResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func toGeographyResponse(role models.Geography) GeographyResponse {
-	return GeographyResponse{
+func toGeographyTypeResponse(role models.GeographyType) GeographyTypeResponse {
+	return GeographyTypeResponse{
 		UUID:      role.UUID,
 		Name:      role.Name,
 		Code:      role.Code,
@@ -34,61 +34,61 @@ func toGeographyResponse(role models.Geography) GeographyResponse {
 	}
 }
 
-func GeographyGetAll(params pagination.Params) (pagination.Result[GeographyResponse], error) {
-	roles, total, err := repositories.GeographyFindAll(params)
+func GeographyTypeGetAll(params pagination.Params) (pagination.Result[GeographyTypeResponse], error) {
+	gt, total, err := repositories.GeographyTypeFindAll(params)
 	if err != nil {
-		return pagination.Result[GeographyResponse]{}, err
+		return pagination.Result[GeographyTypeResponse]{}, err
 	}
-	items := make([]GeographyResponse, len(roles))
-	for i, role := range roles {
-		items[i] = toGeographyResponse(role)
+	items := make([]GeographyTypeResponse, len(gt))
+	for i, gt := range gt {
+		items[i] = toGeographyTypeResponse(gt)
 	}
-	return pagination.Result[GeographyResponse]{
+	return pagination.Result[GeographyTypeResponse]{
 		Items: items,
 		Meta:  pagination.NewMeta(total, params),
 	}, nil
 }
 
-func GeographyGetByUUID(uuid uuid.UUID) (GeographyResponse, error) {
-	geography, err := repositories.GeographyFindByUUID(uuid)
+func GeographyTypeGetByUUID(uuid uuid.UUID) (GeographyTypeResponse, error) {
+	gt, err := repositories.GeographyTypeFindByUUID(uuid)
 	if err != nil {
-		return GeographyResponse{}, err
+		return GeographyTypeResponse{}, err
 	}
-	return toGeographyResponse(geography), nil
+	return toGeographyTypeResponse(gt), nil
 }
 
-func GeographyCreate(input GeographyInput) (GeographyResponse, error) {
-	geography := models.Geography{
+func GeographyTypeCreate(input GeographyTypeInput) (GeographyTypeResponse, error) {
+	gt := models.GeographyType{
 		Name: input.Name,
 		Code: input.Code,
 	}
-	if err := repositories.GeographyCreate(&geography); err != nil {
-		return GeographyResponse{}, err
+	if err := repositories.GeographyTypeCreate(&gt); err != nil {
+		return GeographyTypeResponse{}, err
 	}
-	resp := toGeographyResponse(geography)
+	resp := toGeographyTypeResponse(gt)
 	ws.GlobalHub.Publish(ws.Event{Entity: "role", Action: ws.ActionCreated, Payload: resp})
 	return resp, nil
 }
 
-func GeographyUpdate(uuid uuid.UUID, input GeographyInput) (GeographyResponse, error) {
-	geography, err := repositories.GeographyFindByUUID(uuid)
+func GeographyTypeUpdate(uuid uuid.UUID, input GeographyTypeInput) (GeographyTypeResponse, error) {
+	gt, err := repositories.GeographyTypeFindByUUID(uuid)
 	if err != nil {
-		return GeographyResponse{}, err
+		return GeographyTypeResponse{}, err
 	}
-	geography.Name = input.Name
-	geography.Code = input.Code
-	if err := repositories.GeographyUpdate(&geography); err != nil {
-		return GeographyResponse{}, err
+	gt.Name = input.Name
+	gt.Code = input.Code
+	if err := repositories.GeographyTypeUpdate(&gt); err != nil {
+		return GeographyTypeResponse{}, err
 	}
-	resp := toGeographyResponse(geography)
-	ws.GlobalHub.Publish(ws.Event{Entity: "geography", Action: ws.ActionUpdated, Payload: resp})
+	resp := toGeographyTypeResponse(gt)
+	ws.GlobalHub.Publish(ws.Event{Entity: "geographyType", Action: ws.ActionUpdated, Payload: resp})
 	return resp, nil
 }
 
-func GeographyDelete(uuid uuid.UUID) error {
+func GeographyTypeDelete(uuid uuid.UUID) error {
 	if err := repositories.GeographyDelete(uuid); err != nil {
 		return err
 	}
-	ws.GlobalHub.Publish(ws.Event{Entity: "geography", Action: ws.ActionDeleted, Payload: map[string]string{"uuid": uuid.String()}})
+	ws.GlobalHub.Publish(ws.Event{Entity: "geographyType", Action: ws.ActionDeleted, Payload: map[string]string{"uuid": uuid.String()}})
 	return nil
 }
