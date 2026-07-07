@@ -13,6 +13,7 @@ type Geography struct {
 	Name            string         `gorm:"uniqueIndex;not null" json:"-"`
 	Code            string         `gorm:"uniqueIndex;not null" json:"-"`
 	GeographyTypeID uint           `gorm:"column:geography_type_id;not null" json:"geographyTypeId"`
+	GeographyType   GeographyType  `gorm:"foreignKey:GeographyTypeID"`
 	CreatedAt       time.Time      `json:"-"`
 	UpdatedAt       time.Time      `json:"-"`
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
