@@ -160,6 +160,16 @@ definitions:
       uuid:
         type: string
     type: object
+  services.RoleAuthoritiesInput:
+    properties:
+      authority_uuids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - authority_uuids
+    type: object
   services.RoleInput:
     properties:
       code:
@@ -710,6 +720,93 @@ paths:
       security:
       - BearerAuth: []
       summary: Update role
+      tags:
+      - Roles
+  /roles/{uuid}/authorities:
+    get:
+      description: Return all authorities assigned to a role
+      parameters:
+      - description: Role UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/services.AuthorityListResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List role authorities
+      tags:
+      - Roles
+    put:
+      consumes:
+      - application/json
+      description: Replace the full set of authorities assigned to a role
+      parameters:
+      - description: Role UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Authority UUIDs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/services.RoleAuthoritiesInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/services.AuthorityListResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update role authorities
       tags:
       - Roles
   /users:
