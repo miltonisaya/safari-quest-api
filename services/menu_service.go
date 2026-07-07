@@ -4,6 +4,7 @@ import (
 	"safari-quest-api/models"
 	"safari-quest-api/pkg/pagination"
 	"safari-quest-api/repositories"
+	ws "safari-quest-api/websocket"
 	"time"
 
 	"github.com/google/uuid"
@@ -126,7 +127,9 @@ func MenuCreate(input MenuInput) (MenuResponse, error) {
 		return MenuResponse{}, err
 	}
 	menu.Authority = authority
-	return toMenuResponse(menu, 0), nil
+	resp := toMenuResponse(menu, 0)
+	ws.GlobalHub.Publish(ws.Event{Entity: "menu", Action: ws.ActionCreated, Payload: resp})
+	return resp, nil
 }
 
 func MenuUpdate(id uuid.UUID, input MenuInput) (MenuResponse, error) {
@@ -158,9 +161,15 @@ func MenuUpdate(id uuid.UUID, input MenuInput) (MenuResponse, error) {
 		return MenuResponse{}, err
 	}
 	menu.Authority = authority
-	return toMenuResponse(menu, 0), nil
+	resp := toMenuResponse(menu, 0)
+	ws.GlobalHub.Publish(ws.Event{Entity: "menu", Action: ws.ActionUpdated, Payload: resp})
+	return resp, nil
 }
 
 func MenuDelete(id uuid.UUID) error {
-	return repositories.MenuDelete(id)
+	if err := repositories.MenuDelete(id); err != nil {
+		return err
+	}
+	ws.GlobalHub.Publish(ws.Event{Entity: "menu", Action: ws.ActionDeleted, Payload: map[string]string{"uuid": id.String()}})
+	return nil
 }
