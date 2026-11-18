@@ -1,4 +1,4 @@
-package controllers
+package menu
 
 import (
 	"errors"
@@ -6,14 +6,13 @@ import (
 
 	"safari-quest-api/pkg/pagination"
 	"safari-quest-api/pkg/response"
-	"safari-quest-api/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type MenuController struct{}
+type Controller struct{}
 
 // Index godoc
 //
@@ -26,13 +25,13 @@ type MenuController struct{}
 //	@Param			search		query		string	false	"Search by name"
 //	@Param			sort_by		query		string	false	"Sort column: name, sort_order, created_at, updated_at"	default(created_at)
 //	@Param			sort_dir	query		string	false	"Sort direction: asc or desc"							default(asc)
-//	@Success		200			{object}	response.CustomApiResponse{data=pagination.Result[services.MenuResponse]}
+//	@Success		200			{object}	response.CustomApiResponse{data=pagination.Result[Response]}
 //	@Failure		500			{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/menus [get]
-func (controller MenuController) Index(c *gin.Context) {
+func (controller Controller) Index(c *gin.Context) {
 	params := pagination.FromContext(c)
-	menus, err := services.MenuGetAll(params)
+	menus, err := GetAll(params)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch menus")
 		return
@@ -47,19 +46,19 @@ func (controller MenuController) Index(c *gin.Context) {
 //	@Tags			Menus
 //	@Produce		json
 //	@Param			uuid	path		string	true	"Menu UUID"
-//	@Success		200		{object}	response.CustomApiResponse{data=services.MenuResponse}
+//	@Success		200		{object}	response.CustomApiResponse{data=Response}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		404		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/menus/{uuid} [get]
-func (controller MenuController) Show(c *gin.Context) {
+func (controller Controller) Show(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid menu UUID", nil)
 		return
 	}
-	menu, err := services.MenuGetByUUID(uid)
+	menu, err := GetByUUID(uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Menu not found", nil)
@@ -78,19 +77,19 @@ func (controller MenuController) Show(c *gin.Context) {
 //	@Tags			Menus
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		services.MenuInput	true	"Menu data"
-//	@Success		201		{object}	response.CustomApiResponse{data=services.MenuResponse}
+//	@Param			body	body		Input	true	"Menu data"
+//	@Success		201		{object}	response.CustomApiResponse{data=Response}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/menus [post]
-func (controller MenuController) Create(c *gin.Context) {
-	var input services.MenuInput
+func (controller Controller) Create(c *gin.Context) {
+	var input Input
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	menu, err := services.MenuCreate(input)
+	menu, err := Create(input)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to create menu")
 		return
@@ -106,25 +105,25 @@ func (controller MenuController) Create(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			uuid	path		string				true	"Menu UUID"
-//	@Param			body	body		services.MenuInput	true	"Menu data"
-//	@Success		200		{object}	response.CustomApiResponse{data=services.MenuResponse}
+//	@Param			body	body		Input	true	"Menu data"
+//	@Success		200		{object}	response.CustomApiResponse{data=Response}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		404		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/menus/{uuid} [put]
-func (controller MenuController) Update(c *gin.Context) {
+func (controller Controller) Update(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid menu UUID", nil)
 		return
 	}
-	var input services.MenuInput
+	var input Input
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	menu, err := services.MenuUpdate(uid, input)
+	menu, err := Update(uid, input)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Menu not found", nil)
@@ -149,13 +148,13 @@ func (controller MenuController) Update(c *gin.Context) {
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/menus/{uuid} [delete]
-func (controller MenuController) Delete(c *gin.Context) {
+func (controller Controller) Delete(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid menu UUID", nil)
 		return
 	}
-	if err := services.MenuDelete(uid); err != nil {
+	if err := Delete(uid); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Menu not found", nil)
 			return
