@@ -1,8 +1,7 @@
-package repositories
+package menu
 
 import (
 	"safari-quest-api/database"
-	"safari-quest-api/models"
 	"safari-quest-api/pkg/pagination"
 
 	"github.com/google/uuid"
@@ -17,11 +16,11 @@ var menuSortColumns = map[string]string{
 	"updated_at": "updated_at",
 }
 
-func MenuFindAll(params pagination.Params) ([]models.Menu, int64, error) {
-	var menus []models.Menu
+func FindAll(params pagination.Params) ([]Menu, int64, error) {
+	var menus []Menu
 	var total int64
 
-	db := database.GORM_DB.Model(&models.Menu{}).Where("parent_id IS NULL")
+	db := database.GORM_DB.Model(&Menu{}).Where("parent_id IS NULL")
 
 	if params.Search != "" {
 		term := "%" + params.Search + "%"
@@ -44,8 +43,8 @@ func MenuFindAll(params pagination.Params) ([]models.Menu, int64, error) {
 	return menus, total, result.Error
 }
 
-func MenuFindByUUID(uuid uuid.UUID) (models.Menu, error) {
-	var menu models.Menu
+func FindByUUID(uuid uuid.UUID) (Menu, error) {
+	var menu Menu
 	result := database.GORM_DB.
 		Preload("Authority").
 		Preload("Parent").
@@ -57,26 +56,26 @@ func MenuFindByUUID(uuid uuid.UUID) (models.Menu, error) {
 	return menu, result.Error
 }
 
-func MenuFindParentByUUID(uuid uuid.UUID) (models.Menu, error) {
-	var menu models.Menu
+func FindParentByUUID(uuid uuid.UUID) (Menu, error) {
+	var menu Menu
 	result := database.GORM_DB.Select("id, uuid").First(&menu, "uuid = ?", uuid)
 	return menu, result.Error
 }
 
-func MenuCreate(menu *models.Menu) error {
+func Insert(menu *Menu) error {
 	return database.GORM_DB.Create(menu).Error
 }
 
-func MenuUpdate(menu *models.Menu) error {
+func Save(menu *Menu) error {
 	return database.GORM_DB.Save(menu).Error
 }
 
-func MenuDelete(uuid uuid.UUID) error {
-	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.Menu{}).Error
+func Remove(uuid uuid.UUID) error {
+	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&Menu{}).Error
 }
 
-func MenuFindByUUIDs(uuids []uuid.UUID) ([]models.Menu, error) {
-	var menus []models.Menu
+func FindByUUIDs(uuids []uuid.UUID) ([]Menu, error) {
+	var menus []Menu
 	result := database.GORM_DB.Where("uuid IN ?", uuids).Find(&menus)
 	return menus, result.Error
 }
