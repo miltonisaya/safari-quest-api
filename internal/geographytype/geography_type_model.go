@@ -1,4 +1,4 @@
-package models
+package geographytype
 
 import (
 	"time"
@@ -12,7 +12,6 @@ type GeographyType struct {
 	UUID      uuid.UUID      `gorm:"type:uuid;uniqueIndex;not null" json:"-"`
 	Name      string         `gorm:"uniqueIndex;not null" json:"name"`
 	Code      string         `gorm:"uniqueIndex;not null" json:"code"`
-	Geography []Geography    `gorm:"foreignKey:GeographyTypeID" json:"geographies"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
