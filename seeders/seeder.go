@@ -3,11 +3,13 @@ package seeders
 import (
 	"errors"
 	"log"
+	"safari-quest-api/internal/authority"
+	"safari-quest-api/internal/role"
+	"safari-quest-api/internal/user"
 
 	"safari-quest-api/config"
 	"safari-quest-api/database"
-	"safari-quest-api/models"
-	"safari-quest-api/pkg/authority"
+	authoritycode "safari-quest-api/pkg/authority"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -39,25 +41,25 @@ func Run(router *gin.Engine) {
 // and deriving a code from each route's method and path pattern using the same
 // logic the Authorize middleware uses. This guarantees the seeded codes always
 // match what the middleware checks — no manual list to maintain.
-func seedAuthorities(router *gin.Engine) []models.Authority {
+func seedAuthorities(router *gin.Engine) []authority.Authority {
 	log.Println("[seeder] discovering authorities from registered routes...")
 
 	// Deduplicate codes — different routes can derive the same code
 	// (e.g. GET /roles and GET /roles/:uuid both touch the "role" resource).
 	seen := make(map[string]bool)
-	seeded := make([]models.Authority, 0)
+	seeded := make([]authority.Authority, 0)
 
 	for _, route := range router.Routes() {
-		code := authority.DeriveCode(route.Method, route.Path)
+		code := authoritycode.DeriveCode(route.Method, route.Path)
 		if code == "" || seen[code] {
 			continue
 		}
 		seen[code] = true
 
-		var record models.Authority
+		var record authority.Authority
 		// FirstOrCreate finds the authority by code or creates it if absent.
 		// Re-running the seeder will never produce duplicate authorities.
-		database.GORM_DB.Where("code = ?", code).FirstOrCreate(&record, models.Authority{
+		database.GORM_DB.Where("code = ?", code).FirstOrCreate(&record, authority.Authority{
 			Name: code,
 			Code: code,
 		})
@@ -72,36 +74,36 @@ func seedAuthorities(router *gin.Engine) []models.Authority {
 // its authority assignments to the full list discovered from routes.
 // Using Replace instead of Append means new authorities added by future routes
 // are automatically granted to the Administrator role on the next seed run.
-func seedAdminRole(authorities []models.Authority) models.Role {
+func seedAdminRole(authorities []authority.Authority) role.Role {
 	log.Println("[seeder] seeding Administrator role...")
 
-	var role models.Role
-	err := database.GORM_DB.Where("name = ?", "Administrator").First(&role).Error
+	var adminRole role.Role
+	err := database.GORM_DB.Where("name = ?", "Administrator").First(&adminRole).Error
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Printf("[seeder] error looking up Administrator role: %v\n", err)
-			return role
+			return adminRole
 		}
-		role = models.Role{Name: "Administrator", Code: "ADMINISTRATOR"}
-		if err := database.GORM_DB.Create(&role).Error; err != nil {
+		adminRole = role.Role{Name: "Administrator", Code: "ADMINISTRATOR"}
+		if err := database.GORM_DB.Create(&adminRole).Error; err != nil {
 			log.Printf("[seeder] error creating Administrator role: %v\n", err)
-			return role
+			return adminRole
 		}
 	}
 
 	if err := database.GORM_DB.Session(&gorm.Session{FullSaveAssociations: false}).
-		Model(&role).Association("Authorities").Replace(authorities); err != nil {
+		Model(&adminRole).Association("Authorities").Replace(authorities); err != nil {
 		log.Printf("[seeder] warning: could not assign authorities to role: %v\n", err)
 	}
 
 	log.Println("[seeder] Administrator role ready")
-	return role
+	return adminRole
 }
 
 // seedSuperUser creates the super admin user if they do not already exist and
 // ensures the Administrator role is assigned to them. The email and default
 // password are read from config so they never need to be hardcoded here.
-func seedSuperUser(role models.Role) {
+func seedSuperUser(adminRole role.Role) {
 	log.Println("[seeder] seeding super admin user...")
 
 	if config.App.AdminEmail == "" || config.App.AdminDefaultPassword == "" {
@@ -115,15 +117,15 @@ func seedSuperUser(role models.Role) {
 		return
 	}
 
-	var user models.User
-	result := database.GORM_DB.Where("email = ?", config.App.AdminEmail).First(&user)
+	var superUser user.User
+	result := database.GORM_DB.Where("email = ?", config.App.AdminEmail).First(&superUser)
 
 	if result.Error != nil {
 		// User does not exist — create the user record first, then assign the role
 		// separately via Association.Replace. Passing roles directly into the struct
 		// would trigger GORM's FullSaveAssociations which upserts pre-existing records
 		// with an explicit id, failing on GENERATED ALWAYS AS IDENTITY columns.
-		user = models.User{
+		superUser = user.User{
 			FirstName: "Super",
 			LastName:  "Admin",
 			Email:     config.App.AdminEmail,
@@ -133,12 +135,12 @@ func seedSuperUser(role models.Role) {
 			Address:   "System",
 			IsActive:  true,
 		}
-		if err := database.GORM_DB.Create(&user).Error; err != nil {
+		if err := database.GORM_DB.Create(&superUser).Error; err != nil {
 			log.Printf("[seeder] could not create super user: %v\n", err)
 			return
 		}
 		if err := database.GORM_DB.Session(&gorm.Session{FullSaveAssociations: false}).
-			Model(&user).Association("Roles").Replace([]models.Role{role}); err != nil {
+			Model(&superUser).Association("Roles").Replace([]role.Role{adminRole}); err != nil {
 			log.Printf("[seeder] could not assign role to super user: %v\n", err)
 			return
 		}
@@ -146,7 +148,7 @@ func seedSuperUser(role models.Role) {
 	} else {
 		// User exists — refresh the role assignment in case it was removed.
 		if err := database.GORM_DB.Session(&gorm.Session{FullSaveAssociations: false}).
-			Model(&user).Association("Roles").Replace([]models.Role{role}); err != nil {
+			Model(&superUser).Association("Roles").Replace([]role.Role{adminRole}); err != nil {
 			log.Printf("[seeder] could not assign role to super user: %v\n", err)
 		}
 		log.Println("[seeder] super user already exists, role assignment refreshed")
