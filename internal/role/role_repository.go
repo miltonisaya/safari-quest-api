@@ -1,8 +1,7 @@
-package repositories
+package role
 
 import (
 	"safari-quest-api/database"
-	"safari-quest-api/models"
 	"safari-quest-api/pkg/pagination"
 
 	"github.com/google/uuid"
@@ -15,11 +14,11 @@ var roleSortColumns = map[string]string{
 	"updated_at": "updated_at",
 }
 
-func RoleFindAll(params pagination.Params) ([]models.Role, int64, error) {
-	var roles []models.Role
+func FindAll(params pagination.Params) ([]Role, int64, error) {
+	var roles []Role
 	var total int64
 
-	db := database.GORM_DB.Model(&models.Role{})
+	db := database.GORM_DB.Model(&Role{})
 
 	if params.Search != "" {
 		term := "%" + params.Search + "%"
@@ -37,32 +36,32 @@ func RoleFindAll(params pagination.Params) ([]models.Role, int64, error) {
 	return roles, total, result.Error
 }
 
-func RoleFindByUUID(uuid uuid.UUID) (models.Role, error) {
-	var role models.Role
+func FindByUUID(uuid uuid.UUID) (Role, error) {
+	var role Role
 	result := database.GORM_DB.First(&role, "uuid = ?", uuid)
 	return role, result.Error
 }
 
-func RoleFindByUUIDWithAuthorities(uuid uuid.UUID) (models.Role, error) {
-	var role models.Role
+func FindByUUIDWithAuthorities(uuid uuid.UUID) (Role, error) {
+	var role Role
 	result := database.GORM_DB.Preload("Authorities").First(&role, "uuid = ?", uuid)
 	return role, result.Error
 }
 
-func RoleCreate(role *models.Role) error {
+func Insert(role *Role) error {
 	return database.GORM_DB.Create(role).Error
 }
 
-func RoleUpdate(role *models.Role) error {
+func Save(role *Role) error {
 	return database.GORM_DB.Save(role).Error
 }
 
-func RoleDelete(uuid uuid.UUID) error {
-	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.Role{}).Error
+func Remove(uuid uuid.UUID) error {
+	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&Role{}).Error
 }
 
-func RoleFindByUUIDs(uuids []uuid.UUID) ([]models.Role, error) {
-	var roles []models.Role
+func FindByUUIDs(uuids []uuid.UUID) ([]Role, error) {
+	var roles []Role
 	result := database.GORM_DB.Where("uuid IN ?", uuids).Find(&roles)
 	return roles, result.Error
 }
