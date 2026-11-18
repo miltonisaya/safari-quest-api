@@ -1,15 +1,14 @@
-package controllers
+package authority
 
 import (
 	"net/http"
 
 	"safari-quest-api/pkg/response"
-	"safari-quest-api/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-type AuthorityController struct{}
+type Controller struct{}
 
 // Index godoc
 //
@@ -17,12 +16,12 @@ type AuthorityController struct{}
 //	@Description	Return all authorities
 //	@Tags			Authorities
 //	@Produce		json
-//	@Success		200	{object}	response.CustomApiResponse{data=[]services.AuthorityListResponse}
+//	@Success		200	{object}	response.CustomApiResponse{data=[]ListResponse}
 //	@Failure		500	{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/authorities [get]
-func (controller AuthorityController) Index(c *gin.Context) {
-	authorities, err := services.AuthorityGetAll()
+func (controller Controller) Index(c *gin.Context) {
+	authorities, err := GetAll()
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
