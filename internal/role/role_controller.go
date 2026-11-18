@@ -1,4 +1,4 @@
-package controllers
+package role
 
 import (
 	"errors"
@@ -6,14 +6,13 @@ import (
 
 	"safari-quest-api/pkg/pagination"
 	"safari-quest-api/pkg/response"
-	"safari-quest-api/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type RoleController struct{}
+type Controller struct{}
 
 // Index godoc
 //
@@ -26,13 +25,13 @@ type RoleController struct{}
 //	@Param			search		query		string	false	"Search by name or code"
 //	@Param			sort_by		query		string	false	"Sort column: name, code, created_at, updated_at"	default(created_at)
 //	@Param			sort_dir	query		string	false	"Sort direction: asc or desc"						default(asc)
-//	@Success		200			{object}	response.CustomApiResponse{data=pagination.Result[services.RoleResponse]}
+//	@Success		200			{object}	response.CustomApiResponse{data=pagination.Result[Response]}
 //	@Failure		500			{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/roles [get]
-func (controller RoleController) Index(c *gin.Context) {
+func (controller Controller) Index(c *gin.Context) {
 	params := pagination.FromContext(c)
-	roles, err := services.RoleGetAll(params)
+	roles, err := GetAll(params)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch roles")
 		return
@@ -47,19 +46,19 @@ func (controller RoleController) Index(c *gin.Context) {
 //	@Tags			Roles
 //	@Produce		json
 //	@Param			uuid	path		string	true	"Role UUID"
-//	@Success		200		{object}	response.CustomApiResponse{data=services.RoleResponse}
+//	@Success		200		{object}	response.CustomApiResponse{data=Response}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		404		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/roles/{uuid} [get]
-func (controller RoleController) Show(c *gin.Context) {
+func (controller Controller) Show(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid authority UUID", nil)
 		return
 	}
-	authority, err := services.RoleGetByUUID(uid)
+	authority, err := GetByUUID(uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Role not found", nil)
@@ -78,19 +77,19 @@ func (controller RoleController) Show(c *gin.Context) {
 //	@Tags			Roles
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		services.RoleInput	true	"Role data"
-//	@Success		201		{object}	response.CustomApiResponse{data=services.RoleResponse}
+//	@Param			body	body		Input	true	"Role data"
+//	@Success		201		{object}	response.CustomApiResponse{data=Response}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/roles [post]
-func (controller RoleController) Create(c *gin.Context) {
-	var input services.RoleInput
+func (controller Controller) Create(c *gin.Context) {
+	var input Input
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	role, err := services.RoleCreate(input)
+	role, err := Create(input)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to create role")
 		return
@@ -106,25 +105,25 @@ func (controller RoleController) Create(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			uuid	path		string				true	"Role UUID"
-//	@Param			body	body		services.RoleInput	true	"Role data"
-//	@Success		200		{object}	response.CustomApiResponse{data=services.RoleResponse}
+//	@Param			body	body		Input	true	"Role data"
+//	@Success		200		{object}	response.CustomApiResponse{data=Response}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		404		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/roles/{uuid} [put]
-func (controller RoleController) Update(c *gin.Context) {
+func (controller Controller) Update(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
 		return
 	}
-	var input services.RoleInput
+	var input Input
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	role, err := services.RoleUpdate(uid, input)
+	role, err := Update(uid, input)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Role not found", nil)
@@ -144,25 +143,25 @@ func (controller RoleController) Update(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			uuid	path		string							true	"Role UUID"
-//	@Param			body	body		services.RoleAuthoritiesInput	true	"Authority UUIDs"
-//	@Success		200		{object}	response.CustomApiResponse{data=[]services.AuthorityListResponse}
+//	@Param			body	body		AuthoritiesInput	true	"Authority UUIDs"
+//	@Success		200		{object}	response.CustomApiResponse{data=[]authority.ListResponse}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		404		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/roles/{uuid}/authorities [put]
-func (controller RoleController) UpdateAuthorities(c *gin.Context) {
+func (controller Controller) UpdateAuthorities(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
 		return
 	}
-	var input services.RoleAuthoritiesInput
+	var input AuthoritiesInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	authorities, err := services.RoleUpdateAuthorities(uid, input)
+	authorities, err := UpdateAuthorities(uid, input)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Role not found", nil)
@@ -181,19 +180,19 @@ func (controller RoleController) UpdateAuthorities(c *gin.Context) {
 //	@Tags			Roles
 //	@Produce		json
 //	@Param			uuid	path		string	true	"Role UUID"
-//	@Success		200		{object}	response.CustomApiResponse{data=[]services.AuthorityListResponse}
+//	@Success		200		{object}	response.CustomApiResponse{data=[]authority.ListResponse}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		404		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/roles/{uuid}/authorities [get]
-func (controller RoleController) Authorities(c *gin.Context) {
+func (controller Controller) Authorities(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
 		return
 	}
-	authorities, err := services.RoleGetAuthorities(uid)
+	authorities, err := GetAuthorities(uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Role not found", nil)
@@ -218,13 +217,13 @@ func (controller RoleController) Authorities(c *gin.Context) {
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/roles/{uuid} [delete]
-func (controller RoleController) Delete(c *gin.Context) {
+func (controller Controller) Delete(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid role UUID", nil)
 		return
 	}
-	if err := services.RoleDelete(uid); err != nil {
+	if err := Delete(uid); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Authority not found", nil)
 			return
