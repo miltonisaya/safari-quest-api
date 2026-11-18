@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/http"
+	attractionType "safari-quest-api/internal/attractiontype"
 
 	"safari-quest-api/internal/auth"
 	"safari-quest-api/internal/authority"
@@ -37,6 +38,7 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	geographytype.RegisterRoutes(protected)
 	geography.RegisterRoutes(protected)
 	authority.RegisterRoutes(protected)
+	attractionType.RegisterRoutes(protected)
 }
 
 func healthCheck(c *gin.Context) {
