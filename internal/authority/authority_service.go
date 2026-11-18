@@ -1,13 +1,12 @@
-package services
+package authority
 
 import (
-	"safari-quest-api/repositories"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type AuthorityListResponse struct {
+type ListResponse struct {
 	UUID      uuid.UUID `json:"uuid"`
 	Name      string    `json:"name"`
 	Code      string    `json:"code"`
@@ -15,14 +14,14 @@ type AuthorityListResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func AuthorityGetAll() ([]AuthorityListResponse, error) {
-	authorities, err := repositories.AuthorityFindAll()
+func GetAll() ([]ListResponse, error) {
+	authorities, err := FindAll()
 	if err != nil {
 		return nil, err
 	}
-	items := make([]AuthorityListResponse, len(authorities))
+	items := make([]ListResponse, len(authorities))
 	for i, a := range authorities {
-		items[i] = AuthorityListResponse{
+		items[i] = ListResponse{
 			UUID:      a.UUID,
 			Name:      a.Name,
 			Code:      a.Code,
