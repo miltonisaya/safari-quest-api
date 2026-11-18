@@ -1,4 +1,27 @@
 definitions:
+  attractionType.Input:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  attractionType.Response:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
   auth.LoginInput:
     properties:
       email:
@@ -59,12 +82,35 @@ definitions:
       created_at:
         type: string
       geographyType:
-        $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
+        $ref: '#/definitions/geographytype.Response'
       level:
         type: integer
       name:
         type: string
       parentUuid:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  geographytype.Input:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  geographytype.Response:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      name:
         type: string
       updated_at:
         type: string
@@ -151,11 +197,29 @@ definitions:
       total:
         type: integer
     type: object
+  pagination.Result-attractionType_Response:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/attractionType.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
   pagination.Result-geography_Response:
     properties:
       items:
         items:
           $ref: '#/definitions/geography.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  pagination.Result-geographytype_Response:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/geographytype.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
@@ -174,24 +238,6 @@ definitions:
       items:
         items:
           $ref: '#/definitions/role.Response'
-        type: array
-      meta:
-        $ref: '#/definitions/pagination.Meta'
-    type: object
-  pagination.Result-safari-quest-api_internal_attractiontype_Response:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/safari-quest-api_internal_attractiontype.Response'
-        type: array
-      meta:
-        $ref: '#/definitions/pagination.Meta'
-    type: object
-  pagination.Result-safari-quest-api_internal_geographytype_Response:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
@@ -246,52 +292,6 @@ definitions:
     - name
     type: object
   role.Response:
-    properties:
-      code:
-        type: string
-      created_at:
-        type: string
-      name:
-        type: string
-      updated_at:
-        type: string
-      uuid:
-        type: string
-    type: object
-  safari-quest-api_internal_attractiontype.Input:
-    properties:
-      code:
-        type: string
-      name:
-        type: string
-    required:
-    - code
-    - name
-    type: object
-  safari-quest-api_internal_attractiontype.Response:
-    properties:
-      code:
-        type: string
-      created_at:
-        type: string
-      name:
-        type: string
-      updated_at:
-        type: string
-      uuid:
-        type: string
-    type: object
-  safari-quest-api_internal_geographytype.Input:
-    properties:
-      code:
-        type: string
-      name:
-        type: string
-    required:
-    - code
-    - name
-    type: object
-  safari-quest-api_internal_geographytype.Response:
     properties:
       code:
         type: string
@@ -368,6 +368,207 @@ definitions:
 info:
   contact: {}
 paths:
+  /attraction-types:
+    get:
+      description: Return a paginated, searchable, and sortable list of attraction
+        types
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: 'Sort column: name, code, created_at, updated_at'
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-attractionType_Response'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List attraction types
+      tags:
+      - Attraction Types
+    post:
+      consumes:
+      - application/json
+      description: Create a new attraction type
+      parameters:
+      - description: Attraction type data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/attractionType.Input'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/attractionType.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Create attraction type
+      tags:
+      - Attraction Types
+  /attraction-types/{uuid}:
+    delete:
+      description: Soft-delete a attraction type by UUID
+      parameters:
+      - description: Attraction type UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete attraction type
+      tags:
+      - Attraction Types
+    get:
+      description: Return a single attraction type by UUID
+      parameters:
+      - description: Attraction type UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/attractionType.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get attraction type
+      tags:
+      - Attraction Types
+    put:
+      consumes:
+      - application/json
+      description: Update an existing attraction type by UUID
+      parameters:
+      - description: Attraction type UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Attraction type data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/attractionType.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/attractionType.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update attraction type
+      tags:
+      - Attraction Types
   /auth/login:
     post:
       consumes:
@@ -682,7 +883,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/pagination.Result-safari-quest-api_internal_geographytype_Response'
+                  $ref: '#/definitions/pagination.Result-geographytype_Response'
               type: object
         "500":
           description: Internal Server Error
@@ -703,7 +904,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/safari-quest-api_internal_geographytype.Input'
+          $ref: '#/definitions/geographytype.Input'
       produces:
       - application/json
       responses:
@@ -714,7 +915,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
+                  $ref: '#/definitions/geographytype.Response'
               type: object
         "400":
           description: Bad Request
@@ -780,7 +981,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
+                  $ref: '#/definitions/geographytype.Response'
               type: object
         "400":
           description: Bad Request
@@ -814,7 +1015,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/safari-quest-api_internal_geographytype.Input'
+          $ref: '#/definitions/geographytype.Input'
       produces:
       - application/json
       responses:
@@ -825,7 +1026,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
+                  $ref: '#/definitions/geographytype.Response'
               type: object
         "400":
           description: Bad Request
