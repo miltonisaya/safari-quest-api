@@ -1,4 +1,4 @@
-package models
+package authority
 
 import (
 	"time"
@@ -15,7 +15,6 @@ type Authority struct {
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	Roles     []Role         `gorm:"many2many:role_authorities;" json:"roles"`
 }
 
 func (a *Authority) BeforeCreate(tx *gorm.DB) error {
