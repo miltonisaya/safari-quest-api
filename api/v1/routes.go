@@ -3,89 +3,40 @@ package v1
 import (
 	"net/http"
 
-	"safari-quest-api/controllers"
+	"safari-quest-api/internal/auth"
+	"safari-quest-api/internal/authority"
+	"safari-quest-api/internal/geography"
+	"safari-quest-api/internal/geographytype"
+	"safari-quest-api/internal/menu"
+	"safari-quest-api/internal/role"
+	"safari-quest-api/internal/user"
 	"safari-quest-api/middlewares"
 	"safari-quest-api/pkg/response"
+	"safari-quest-api/websocket"
 
 	"github.com/gin-gonic/gin"
 )
 
+// RegisterRoutes decides which middleware each feature sits behind; the
+// features themselves declare their own paths in their <struct>_routes.go files.
 func RegisterRoutes(rg *gin.RouterGroup) {
 	// Public routes — no authentication required.
 	rg.GET("/health", healthCheck)
+	auth.RegisterRoutes(rg)
 
-	authController := controllers.AuthController{}
-	rg.POST("/auth/login", authController.Login)
-
-	// WebSocket — requires a valid JWT passed as ?token=<jwt> query param.
-	// Not behind Authorize() because it is a persistent connection, not a
-	// discrete resource action.
-	wsController := controllers.WSController{}
-	rg.GET("/ws", middlewares.Auth(), wsController.Connect)
+	// WebSocket — authenticated, but not behind Authorize().
+	websocket.RegisterRoutes(rg.Group("", middlewares.Auth()))
 
 	// Protected routes — Auth() validates the JWT and Authorize() automatically
 	// derives the required authority code from the route pattern and HTTP method,
 	// then checks the user holds it via their roles. No per-route configuration needed.
 	protected := rg.Group("", middlewares.Auth(), middlewares.Authorize())
-	{
-		roleController := controllers.RoleController{}
-		roles := protected.Group("/roles")
-		{
-			roles.GET("", roleController.Index)
-			roles.POST("", roleController.Create)
-			roles.GET("/:uuid", roleController.Show)
-			roles.PUT("/:uuid", roleController.Update)
-			roles.DELETE("/:uuid", roleController.Delete)
-			roles.GET("/:uuid/authorities", roleController.Authorities)
-			roles.PUT("/:uuid/authorities", roleController.UpdateAuthorities)
-		}
-
-		userController := controllers.UserController{}
-		users := protected.Group("/users")
-		{
-			users.GET("", userController.Index)
-			users.POST("", userController.Create)
-			users.GET("/:uuid", userController.Show)
-			users.PUT("/:uuid", userController.Update)
-			users.DELETE("/:uuid", userController.Delete)
-		}
-
-		menuController := controllers.MenuController{}
-		menus := protected.Group("/menus")
-		{
-			menus.GET("", menuController.Index)
-			menus.POST("", menuController.Create)
-			menus.GET("/:uuid", menuController.Show)
-			menus.PUT("/:uuid", menuController.Update)
-			menus.DELETE("/:uuid", menuController.Delete)
-		}
-
-		geographyTypeController := controllers.GeographyTypeController{}
-		geographyTypes := protected.Group("/geography-types")
-		{
-			geographyTypes.GET("", geographyTypeController.Index)
-			geographyTypes.POST("", geographyTypeController.Create)
-			geographyTypes.GET("/:uuid", geographyTypeController.Show)
-			geographyTypes.PUT("/:uuid", geographyTypeController.Update)
-			geographyTypes.DELETE("/:uuid", geographyTypeController.Delete)
-		}
-
-		geographyController := controllers.GeographyController{}
-		geographies := protected.Group("/geographies")
-		{
-			geographies.GET("", geographyController.Index)
-			geographies.POST("", geographyController.Create)
-			geographies.GET("/:uuid", geographyController.Show)
-			geographies.PUT("/:uuid", geographyController.Update)
-			geographies.DELETE("/:uuid", geographyController.Delete)
-		}
-
-		authorityController := controllers.AuthorityController{}
-		authorities := protected.Group("/authorities")
-		{
-			authorities.GET("", authorityController.Index)
-		}
-	}
+	role.RegisterRoutes(protected)
+	user.RegisterRoutes(protected)
+	menu.RegisterRoutes(protected)
+	geographytype.RegisterRoutes(protected)
+	geography.RegisterRoutes(protected)
+	authority.RegisterRoutes(protected)
 }
 
 func healthCheck(c *gin.Context) {
