@@ -1,6 +1,7 @@
-package models
+package user
 
 import (
+	"safari-quest-api/internal/role"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ type User struct {
 	CreatedAt       time.Time      `json:"-"`
 	UpdatedAt       time.Time      `json:"-"`
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
-	Roles           []Role         `gorm:"many2many:user_roles;" json:"-"`
+	Roles           []role.Role    `gorm:"many2many:user_roles;" json:"-"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
