@@ -1,24 +1,23 @@
-package services
+package role
 
 import (
+	"safari-quest-api/internal/authority"
 	"time"
 
 	"safari-quest-api/database"
-	"safari-quest-api/models"
 	"safari-quest-api/pkg/pagination"
-	"safari-quest-api/repositories"
 	ws "safari-quest-api/websocket"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type RoleInput struct {
+type Input struct {
 	Name string `json:"name" binding:"required"`
 	Code string `json:"code" binding:"required"`
 }
 
-type RoleResponse struct {
+type Response struct {
 	UUID      uuid.UUID `json:"uuid"`
 	Name      string    `json:"name"`
 	Code      string    `json:"code"`
@@ -26,8 +25,9 @@ type RoleResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func toRoleResponse(role models.Role) RoleResponse {
-	return RoleResponse{
+// ToResponse converts a Role into its API representation.
+func ToResponse(role Role) Response {
+	return Response{
 		UUID:      role.UUID,
 		Name:      role.Name,
 		Code:      role.Code,
@@ -36,67 +36,67 @@ func toRoleResponse(role models.Role) RoleResponse {
 	}
 }
 
-func RoleGetAll(params pagination.Params) (pagination.Result[RoleResponse], error) {
-	roles, total, err := repositories.RoleFindAll(params)
+func GetAll(params pagination.Params) (pagination.Result[Response], error) {
+	roles, total, err := FindAll(params)
 	if err != nil {
-		return pagination.Result[RoleResponse]{}, err
+		return pagination.Result[Response]{}, err
 	}
-	items := make([]RoleResponse, len(roles))
+	items := make([]Response, len(roles))
 	for i, role := range roles {
-		items[i] = toRoleResponse(role)
+		items[i] = ToResponse(role)
 	}
-	return pagination.Result[RoleResponse]{
+	return pagination.Result[Response]{
 		Items: items,
 		Meta:  pagination.NewMeta(total, params),
 	}, nil
 }
 
-func RoleGetByUUID(uuid uuid.UUID) (RoleResponse, error) {
-	role, err := repositories.RoleFindByUUID(uuid)
+func GetByUUID(uuid uuid.UUID) (Response, error) {
+	role, err := FindByUUID(uuid)
 	if err != nil {
-		return RoleResponse{}, err
+		return Response{}, err
 	}
-	return toRoleResponse(role), nil
+	return ToResponse(role), nil
 }
 
-func RoleCreate(input RoleInput) (RoleResponse, error) {
-	role := models.Role{
+func Create(input Input) (Response, error) {
+	role := Role{
 		Name: input.Name,
 		Code: input.Code,
 	}
-	if err := repositories.RoleCreate(&role); err != nil {
-		return RoleResponse{}, err
+	if err := Insert(&role); err != nil {
+		return Response{}, err
 	}
-	resp := toRoleResponse(role)
+	resp := ToResponse(role)
 	ws.GlobalHub.Publish(ws.Event{Entity: "role", Action: ws.ActionCreated, Payload: resp})
 	return resp, nil
 }
 
-func RoleUpdate(uuid uuid.UUID, input RoleInput) (RoleResponse, error) {
-	role, err := repositories.RoleFindByUUID(uuid)
+func Update(uuid uuid.UUID, input Input) (Response, error) {
+	role, err := FindByUUID(uuid)
 	if err != nil {
-		return RoleResponse{}, err
+		return Response{}, err
 	}
 	role.Name = input.Name
 	role.Code = input.Code
-	if err := repositories.RoleUpdate(&role); err != nil {
-		return RoleResponse{}, err
+	if err := Save(&role); err != nil {
+		return Response{}, err
 	}
-	resp := toRoleResponse(role)
+	resp := ToResponse(role)
 	ws.GlobalHub.Publish(ws.Event{Entity: "role", Action: ws.ActionUpdated, Payload: resp})
 	return resp, nil
 }
 
-type RoleAuthoritiesInput struct {
+type AuthoritiesInput struct {
 	AuthorityUUIDs []uuid.UUID `json:"authority_uuids" binding:"required,min=1"`
 }
 
-func RoleUpdateAuthorities(roleUUID uuid.UUID, input RoleAuthoritiesInput) ([]AuthorityListResponse, error) {
-	role, err := repositories.RoleFindByUUID(roleUUID)
+func UpdateAuthorities(roleUUID uuid.UUID, input AuthoritiesInput) ([]authority.ListResponse, error) {
+	role, err := FindByUUID(roleUUID)
 	if err != nil {
 		return nil, err
 	}
-	authorities, err := repositories.AuthorityFindByUUIDs(input.AuthorityUUIDs)
+	authorities, err := authority.FindByUUIDs(input.AuthorityUUIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -104,9 +104,9 @@ func RoleUpdateAuthorities(roleUUID uuid.UUID, input RoleAuthoritiesInput) ([]Au
 		Model(&role).Association("Authorities").Replace(authorities); err != nil {
 		return nil, err
 	}
-	items := make([]AuthorityListResponse, len(authorities))
+	items := make([]authority.ListResponse, len(authorities))
 	for i, a := range authorities {
-		items[i] = AuthorityListResponse{
+		items[i] = authority.ListResponse{
 			UUID:      a.UUID,
 			Name:      a.Name,
 			Code:      a.Code,
@@ -117,14 +117,14 @@ func RoleUpdateAuthorities(roleUUID uuid.UUID, input RoleAuthoritiesInput) ([]Au
 	return items, nil
 }
 
-func RoleGetAuthorities(roleUUID uuid.UUID) ([]AuthorityListResponse, error) {
-	role, err := repositories.RoleFindByUUIDWithAuthorities(roleUUID)
+func GetAuthorities(roleUUID uuid.UUID) ([]authority.ListResponse, error) {
+	role, err := FindByUUIDWithAuthorities(roleUUID)
 	if err != nil {
 		return nil, err
 	}
-	items := make([]AuthorityListResponse, len(role.Authorities))
+	items := make([]authority.ListResponse, len(role.Authorities))
 	for i, a := range role.Authorities {
-		items[i] = AuthorityListResponse{
+		items[i] = authority.ListResponse{
 			UUID:      a.UUID,
 			Name:      a.Name,
 			Code:      a.Code,
@@ -135,8 +135,8 @@ func RoleGetAuthorities(roleUUID uuid.UUID) ([]AuthorityListResponse, error) {
 	return items, nil
 }
 
-func RoleDelete(uuid uuid.UUID) error {
-	if err := repositories.RoleDelete(uuid); err != nil {
+func Delete(uuid uuid.UUID) error {
+	if err := Remove(uuid); err != nil {
 		return err
 	}
 	ws.GlobalHub.Publish(ws.Event{Entity: "role", Action: ws.ActionDeleted, Payload: map[string]string{"uuid": uuid.String()}})
