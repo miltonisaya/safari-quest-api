@@ -1,4 +1,4 @@
-package controllers
+package geographytype
 
 import (
 	"errors"
@@ -6,14 +6,13 @@ import (
 
 	"safari-quest-api/pkg/pagination"
 	"safari-quest-api/pkg/response"
-	"safari-quest-api/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type GeographyTypeController struct{}
+type Controller struct{}
 
 // Index godoc
 //
@@ -26,13 +25,13 @@ type GeographyTypeController struct{}
 //	@Param			search		query		string	false	"Search by name or code"
 //	@Param			sort_by		query		string	false	"Sort column: name, code, created_at, updated_at"	default(created_at)
 //	@Param			sort_dir	query		string	false	"Sort direction: asc or desc"						default(asc)
-//	@Success		200			{object}	response.CustomApiResponse{data=pagination.Result[services.GeographyTypeResponse]}
+//	@Success		200			{object}	response.CustomApiResponse{data=pagination.Result[Response]}
 //	@Failure		500			{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/geography-types [get]
-func (controller GeographyTypeController) Index(c *gin.Context) {
+func (controller Controller) Index(c *gin.Context) {
 	params := pagination.FromContext(c)
-	g, err := services.GeographyTypeGetAll(params)
+	g, err := GetAll(params)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to fetch geography types")
 		return
@@ -47,19 +46,19 @@ func (controller GeographyTypeController) Index(c *gin.Context) {
 //	@Tags			Geography Types
 //	@Produce		json
 //	@Param			uuid	path		string	true	"Geography type UUID"
-//	@Success		200		{object}	response.CustomApiResponse{data=services.GeographyTypeResponse}
+//	@Success		200		{object}	response.CustomApiResponse{data=Response}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		404		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/geography-types/{uuid} [get]
-func (controller GeographyTypeController) Show(c *gin.Context) {
+func (controller Controller) Show(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid geography type UUID", nil)
 		return
 	}
-	g, err := services.GeographyTypeGetByUUID(uid)
+	g, err := GetByUUID(uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Geography type not found", nil)
@@ -78,19 +77,19 @@ func (controller GeographyTypeController) Show(c *gin.Context) {
 //	@Tags			Geography Types
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		services.GeographyTypeInput		true	"Geography type data"
-//	@Success		201		{object}	response.CustomApiResponse{data=services.GeographyTypeResponse}
+//	@Param			body	body		Input		true	"Geography type data"
+//	@Success		201		{object}	response.CustomApiResponse{data=Response}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/geography-types [post]
-func (controller GeographyTypeController) Create(c *gin.Context) {
-	var input services.GeographyTypeInput
+func (controller Controller) Create(c *gin.Context) {
+	var input Input
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	geographyType, err := services.GeographyTypeCreate(input)
+	geographyType, err := Create(input)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Failed to create geography type")
 		return
@@ -106,25 +105,25 @@ func (controller GeographyTypeController) Create(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			uuid	path		string							true	"Geography type UUID"
-//	@Param			body	body		services.GeographyTypeInput		true	"Geography type data"
-//	@Success		200		{object}	response.CustomApiResponse{data=services.GeographyTypeResponse}
+//	@Param			body	body		Input		true	"Geography type data"
+//	@Success		200		{object}	response.CustomApiResponse{data=Response}
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Failure		404		{object}	response.CustomApiResponse
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/geography-types/{uuid} [put]
-func (controller GeographyTypeController) Update(c *gin.Context) {
+func (controller Controller) Update(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid geography type UUID", nil)
 		return
 	}
-	var input services.GeographyTypeInput
+	var input Input
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, "Validation failed", gin.H{"error": err.Error()})
 		return
 	}
-	geographyType, err := services.GeographyTypeUpdate(uid, input)
+	geographyType, err := Update(uid, input)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Geography type not found", nil)
@@ -149,13 +148,13 @@ func (controller GeographyTypeController) Update(c *gin.Context) {
 //	@Failure		500		{object}	response.CustomApiResponse
 //	@Security		BearerAuth
 //	@Router			/geography-types/{uuid} [delete]
-func (controller GeographyTypeController) Delete(c *gin.Context) {
+func (controller Controller) Delete(c *gin.Context) {
 	uid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "Invalid geography type UUID", nil)
 		return
 	}
-	if err := services.GeographyTypeDelete(uid); err != nil {
+	if err := Delete(uid); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.Fail(c, http.StatusNotFound, "Geography type not found", nil)
 			return
