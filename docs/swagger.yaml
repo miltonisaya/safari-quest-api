@@ -1,4 +1,139 @@
 definitions:
+  auth.LoginInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.LoginResponse:
+    properties:
+      authorities:
+        items:
+          $ref: '#/definitions/authority.ListResponse'
+        type: array
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/user.Response'
+    type: object
+  authority.ListResponse:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  geography.Input:
+    properties:
+      code:
+        type: string
+      geographyTypeUuid:
+        type: string
+      name:
+        type: string
+      parentUuid:
+        type: string
+    required:
+    - code
+    - geographyTypeUuid
+    - name
+    type: object
+  geography.Response:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/geography.Response'
+        type: array
+      code:
+        type: string
+      created_at:
+        type: string
+      geographyType:
+        $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
+      level:
+        type: integer
+      name:
+        type: string
+      parentUuid:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  menu.AuthorityResponse:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  menu.Input:
+    properties:
+      active:
+        type: boolean
+      authorityUuid:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      parentUuid:
+        type: string
+      route:
+        type: string
+      sortOrder:
+        type: integer
+      type:
+        type: string
+    required:
+    - authorityUuid
+    - name
+    - type
+    type: object
+  menu.Response:
+    properties:
+      active:
+        type: boolean
+      authority:
+        $ref: '#/definitions/menu.AuthorityResponse'
+      children:
+        items:
+          $ref: '#/definitions/menu.Response'
+        type: array
+      created_at:
+        type: string
+      icon:
+        type: string
+      level:
+        type: integer
+      name:
+        type: string
+      parentUuid:
+        type: string
+      route:
+        type: string
+      sortOrder:
+        type: integer
+      type:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
   pagination.Meta:
     properties:
       last_page:
@@ -16,47 +151,56 @@ definitions:
       total:
         type: integer
     type: object
-  pagination.Result-services_GeographyResponse:
+  pagination.Result-geography_Response:
     properties:
       items:
         items:
-          $ref: '#/definitions/services.GeographyResponse'
+          $ref: '#/definitions/geography.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
     type: object
-  pagination.Result-services_GeographyTypeResponse:
+  pagination.Result-menu_Response:
     properties:
       items:
         items:
-          $ref: '#/definitions/services.GeographyTypeResponse'
+          $ref: '#/definitions/menu.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
     type: object
-  pagination.Result-services_MenuResponse:
+  pagination.Result-role_Response:
     properties:
       items:
         items:
-          $ref: '#/definitions/services.MenuResponse'
+          $ref: '#/definitions/role.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
     type: object
-  pagination.Result-services_RoleResponse:
+  pagination.Result-safari-quest-api_internal_attractiontype_Response:
     properties:
       items:
         items:
-          $ref: '#/definitions/services.RoleResponse'
+          $ref: '#/definitions/safari-quest-api_internal_attractiontype.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
     type: object
-  pagination.Result-services_UserResponse:
+  pagination.Result-safari-quest-api_internal_geographytype_Response:
     properties:
       items:
         items:
-          $ref: '#/definitions/services.UserResponse'
+          $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  pagination.Result-user_Response:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/user.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
@@ -81,165 +225,7 @@ definitions:
     - StatusSuccess
     - StatusFail
     - StatusError
-  services.AuthorityListResponse:
-    properties:
-      code:
-        type: string
-      created_at:
-        type: string
-      name:
-        type: string
-      updated_at:
-        type: string
-      uuid:
-        type: string
-    type: object
-  services.AuthorityResponse:
-    properties:
-      code:
-        type: string
-      name:
-        type: string
-      uuid:
-        type: string
-    type: object
-  services.GeographyInput:
-    properties:
-      code:
-        type: string
-      geographyTypeUuid:
-        type: string
-      name:
-        type: string
-      parentUuid:
-        type: string
-    required:
-    - code
-    - geographyTypeUuid
-    - name
-    type: object
-  services.GeographyResponse:
-    properties:
-      children:
-        items:
-          $ref: '#/definitions/services.GeographyResponse'
-        type: array
-      code:
-        type: string
-      created_at:
-        type: string
-      geographyType:
-        $ref: '#/definitions/services.GeographyTypeResponse'
-      level:
-        type: integer
-      name:
-        type: string
-      parentUuid:
-        type: string
-      updated_at:
-        type: string
-      uuid:
-        type: string
-    type: object
-  services.GeographyTypeInput:
-    properties:
-      code:
-        type: string
-      name:
-        type: string
-    required:
-    - code
-    - name
-    type: object
-  services.GeographyTypeResponse:
-    properties:
-      code:
-        type: string
-      created_at:
-        type: string
-      name:
-        type: string
-      updated_at:
-        type: string
-      uuid:
-        type: string
-    type: object
-  services.LoginInput:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  services.LoginResponse:
-    properties:
-      authorities:
-        items:
-          $ref: '#/definitions/services.AuthorityListResponse'
-        type: array
-      token:
-        type: string
-      user:
-        $ref: '#/definitions/services.UserResponse'
-    type: object
-  services.MenuInput:
-    properties:
-      active:
-        type: boolean
-      authorityUuid:
-        type: string
-      icon:
-        type: string
-      name:
-        type: string
-      parentUuid:
-        type: string
-      route:
-        type: string
-      sortOrder:
-        type: integer
-      type:
-        type: string
-    required:
-    - authorityUuid
-    - name
-    - type
-    type: object
-  services.MenuResponse:
-    properties:
-      active:
-        type: boolean
-      authority:
-        $ref: '#/definitions/services.AuthorityResponse'
-      children:
-        items:
-          $ref: '#/definitions/services.MenuResponse'
-        type: array
-      created_at:
-        type: string
-      icon:
-        type: string
-      level:
-        type: integer
-      name:
-        type: string
-      parentUuid:
-        type: string
-      route:
-        type: string
-      sortOrder:
-        type: integer
-      type:
-        type: string
-      updated_at:
-        type: string
-      uuid:
-        type: string
-    type: object
-  services.RoleAuthoritiesInput:
+  role.AuthoritiesInput:
     properties:
       authority_uuids:
         items:
@@ -249,7 +235,7 @@ definitions:
     required:
     - authority_uuids
     type: object
-  services.RoleInput:
+  role.Input:
     properties:
       code:
         type: string
@@ -259,7 +245,7 @@ definitions:
     - code
     - name
     type: object
-  services.RoleResponse:
+  role.Response:
     properties:
       code:
         type: string
@@ -272,7 +258,53 @@ definitions:
       uuid:
         type: string
     type: object
-  services.UserInput:
+  safari-quest-api_internal_attractiontype.Input:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  safari-quest-api_internal_attractiontype.Response:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  safari-quest-api_internal_geographytype.Input:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  safari-quest-api_internal_geographytype.Response:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  user.Input:
     properties:
       address:
         type: string
@@ -302,7 +334,7 @@ definitions:
     - role_ids
     - sex
     type: object
-  services.UserResponse:
+  user.Response:
     properties:
       address:
         type: string
@@ -324,7 +356,7 @@ definitions:
         type: string
       roles:
         items:
-          $ref: '#/definitions/services.RoleResponse'
+          $ref: '#/definitions/role.Response'
         type: array
       sex:
         type: string
@@ -347,7 +379,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.LoginInput'
+          $ref: '#/definitions/auth.LoginInput'
       produces:
       - application/json
       responses:
@@ -358,7 +390,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.LoginResponse'
+                  $ref: '#/definitions/auth.LoginResponse'
               type: object
         "400":
           description: Bad Request
@@ -389,7 +421,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/services.AuthorityListResponse'
+                    $ref: '#/definitions/authority.ListResponse'
                   type: array
               type: object
         "500":
@@ -444,7 +476,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/pagination.Result-services_GeographyResponse'
+                  $ref: '#/definitions/pagination.Result-geography_Response'
               type: object
         "400":
           description: Bad Request
@@ -470,7 +502,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.GeographyInput'
+          $ref: '#/definitions/geography.Input'
       produces:
       - application/json
       responses:
@@ -481,7 +513,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.GeographyResponse'
+                  $ref: '#/definitions/geography.Response'
               type: object
         "400":
           description: Bad Request
@@ -547,7 +579,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.GeographyResponse'
+                  $ref: '#/definitions/geography.Response'
               type: object
         "400":
           description: Bad Request
@@ -581,7 +613,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.GeographyInput'
+          $ref: '#/definitions/geography.Input'
       produces:
       - application/json
       responses:
@@ -592,7 +624,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.GeographyResponse'
+                  $ref: '#/definitions/geography.Response'
               type: object
         "400":
           description: Bad Request
@@ -650,7 +682,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/pagination.Result-services_GeographyTypeResponse'
+                  $ref: '#/definitions/pagination.Result-safari-quest-api_internal_geographytype_Response'
               type: object
         "500":
           description: Internal Server Error
@@ -671,7 +703,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.GeographyTypeInput'
+          $ref: '#/definitions/safari-quest-api_internal_geographytype.Input'
       produces:
       - application/json
       responses:
@@ -682,7 +714,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.GeographyTypeResponse'
+                  $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
               type: object
         "400":
           description: Bad Request
@@ -748,7 +780,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.GeographyTypeResponse'
+                  $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
               type: object
         "400":
           description: Bad Request
@@ -782,7 +814,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.GeographyTypeInput'
+          $ref: '#/definitions/safari-quest-api_internal_geographytype.Input'
       produces:
       - application/json
       responses:
@@ -793,7 +825,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.GeographyTypeResponse'
+                  $ref: '#/definitions/safari-quest-api_internal_geographytype.Response'
               type: object
         "400":
           description: Bad Request
@@ -850,7 +882,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/pagination.Result-services_MenuResponse'
+                  $ref: '#/definitions/pagination.Result-menu_Response'
               type: object
         "500":
           description: Internal Server Error
@@ -871,7 +903,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.MenuInput'
+          $ref: '#/definitions/menu.Input'
       produces:
       - application/json
       responses:
@@ -882,7 +914,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.MenuResponse'
+                  $ref: '#/definitions/menu.Response'
               type: object
         "400":
           description: Bad Request
@@ -948,7 +980,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.MenuResponse'
+                  $ref: '#/definitions/menu.Response'
               type: object
         "400":
           description: Bad Request
@@ -982,7 +1014,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.MenuInput'
+          $ref: '#/definitions/menu.Input'
       produces:
       - application/json
       responses:
@@ -993,7 +1025,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.MenuResponse'
+                  $ref: '#/definitions/menu.Response'
               type: object
         "400":
           description: Bad Request
@@ -1050,7 +1082,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/pagination.Result-services_RoleResponse'
+                  $ref: '#/definitions/pagination.Result-role_Response'
               type: object
         "500":
           description: Internal Server Error
@@ -1071,7 +1103,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.RoleInput'
+          $ref: '#/definitions/role.Input'
       produces:
       - application/json
       responses:
@@ -1082,7 +1114,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.RoleResponse'
+                  $ref: '#/definitions/role.Response'
               type: object
         "400":
           description: Bad Request
@@ -1148,7 +1180,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.RoleResponse'
+                  $ref: '#/definitions/role.Response'
               type: object
         "400":
           description: Bad Request
@@ -1182,7 +1214,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.RoleInput'
+          $ref: '#/definitions/role.Input'
       produces:
       - application/json
       responses:
@@ -1193,7 +1225,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.RoleResponse'
+                  $ref: '#/definitions/role.Response'
               type: object
         "400":
           description: Bad Request
@@ -1232,7 +1264,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/services.AuthorityListResponse'
+                    $ref: '#/definitions/authority.ListResponse'
                   type: array
               type: object
         "400":
@@ -1267,7 +1299,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.RoleAuthoritiesInput'
+          $ref: '#/definitions/role.AuthoritiesInput'
       produces:
       - application/json
       responses:
@@ -1279,7 +1311,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/services.AuthorityListResponse'
+                    $ref: '#/definitions/authority.ListResponse'
                   type: array
               type: object
         "400":
@@ -1337,7 +1369,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/pagination.Result-services_UserResponse'
+                  $ref: '#/definitions/pagination.Result-user_Response'
               type: object
         "500":
           description: Internal Server Error
@@ -1358,7 +1390,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.UserInput'
+          $ref: '#/definitions/user.Input'
       produces:
       - application/json
       responses:
@@ -1369,7 +1401,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.UserResponse'
+                  $ref: '#/definitions/user.Response'
               type: object
         "400":
           description: Bad Request
@@ -1435,7 +1467,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.UserResponse'
+                  $ref: '#/definitions/user.Response'
               type: object
         "400":
           description: Bad Request
@@ -1469,7 +1501,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/services.UserInput'
+          $ref: '#/definitions/user.Input'
       produces:
       - application/json
       responses:
@@ -1480,7 +1512,7 @@ paths:
             - $ref: '#/definitions/response.CustomApiResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/services.UserResponse'
+                  $ref: '#/definitions/user.Response'
               type: object
         "400":
           description: Bad Request
