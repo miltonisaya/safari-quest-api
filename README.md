@@ -115,21 +115,37 @@ source .env && goose create <name> sql
 
 ```
 .
-├── api/v1/          # Route registration
-├── config/          # Environment variable loading
-├── controllers/     # HTTP handlers (thin — delegate to services)
-├── database/        # GORM connection and migration runner
-├── docs/            # Generated Swagger docs (do not edit)
-├── middlewares/     # Recovery, Logger, Auth, Authorize
-├── migrations/      # Goose SQL migration files
-├── models/          # GORM models (all fields json:"-")
+├── api/v1/            # Mounts each feature behind the right middleware
+├── config/            # Environment variable loading
+├── database/          # GORM connection and migration runner
+├── docs/              # Generated Swagger docs (do not edit)
+├── internal/          # One package per feature; files are named <struct>_<layer>.go:
+│   ├── auth/          #   auth_controller.go, auth_service.go, auth_routes.go (login, JWT)
+│   ├── authority/     #   authority_model.go, authority_repository.go, authority_service.go,
+│   │                  #   authority_controller.go, authority_routes.go
+│   ├── geography/
+│   ├── geographytype/
+│   ├── menu/
+│   ├── role/
+│   └── user/
+├── middlewares/       # Recovery, Logger, Auth, Authorize
+├── migrations/        # Goose SQL migration files
 ├── pkg/
-│   ├── authority/   # Authority code derivation shared by middleware and seeder
-│   └── response/    # JSend-style response wrapper (CustomApiResponse)
-├── repositories/    # Database queries
-├── seeders/         # Auto-discovers routes and seeds authorities, roles, and admin user
-└── services/        # Business logic and DTOs
+│   ├── authority/     # Authority code derivation shared by middleware and seeder
+│   ├── pagination/    # Paging, search and sort parameters
+│   └── response/      # JSend-style response wrapper (CustomApiResponse)
+├── seeders/           # Auto-discovers routes and seeds authorities, roles, and admin user
+└── websocket/         # Hub, clients, events, and the /ws controller and route
 ```
+
+Inside a feature package the layers keep distinct names so they can share one package:
+each feature declares its own paths in `<struct>_routes.go` via `RegisterRoutes(rg)`, while
+`api/v1/routes.go` only decides which router group (public or protected) it receives;
+the service exposes `GetAll`, `GetByUUID`, `Create`, `Update` and `Delete`; the repository
+exposes `FindAll`, `FindByUUID`, `Insert`, `Save` and `Remove`; the HTTP handler type is
+`Controller`. Features depend on each other in one direction only
+(`user → role → authority`, `menu → authority`, `geography → geographytype`, `auth → user`),
+so models must not hold back-references that would create an import cycle.
 
 ## Development
 
