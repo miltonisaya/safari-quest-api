@@ -1,11 +1,12 @@
-package services
+package auth
 
 import (
 	"errors"
+	"safari-quest-api/internal/authority"
+	"safari-quest-api/internal/user"
 	"time"
 
 	"safari-quest-api/config"
-	"safari-quest-api/repositories"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -25,9 +26,9 @@ type LoginInput struct {
 }
 
 type LoginResponse struct {
-	Token       string                  `json:"token"`
-	User        UserResponse            `json:"user"`
-	Authorities []AuthorityListResponse `json:"authorities"`
+	Token       string                   `json:"token"`
+	User        user.Response            `json:"user"`
+	Authorities []authority.ListResponse `json:"authorities"`
 }
 
 // Login validates the provided credentials and, on success, returns a signed JWT
@@ -35,7 +36,7 @@ type LoginResponse struct {
 // The caller (controller) passes LoginResponse.Data into response.Success so the
 // final JSON is enclosed in CustomApiResponse as with every other endpoint.
 func Login(input LoginInput) (LoginResponse, error) {
-	user, err := repositories.UserFindByEmail(input.Email)
+	account, err := user.FindByEmail(input.Email)
 	if err != nil {
 		// Treat record-not-found the same as wrong password to avoid leaking
 		// whether an email address is registered in the system.
@@ -45,16 +46,16 @@ func Login(input LoginInput) (LoginResponse, error) {
 		return LoginResponse{}, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(input.Password)); err != nil {
 		return LoginResponse{}, ErrInvalidCredentials
 	}
 
-	if !user.IsActive {
+	if !account.IsActive {
 		return LoginResponse{}, ErrAccountInactive
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.UUID.String(),
+		"sub": account.UUID.String(),
 		"iat": time.Now().Unix(),
 		"exp": time.Now().Add(24 * time.Hour).Unix(),
 	})
@@ -65,12 +66,12 @@ func Login(input LoginInput) (LoginResponse, error) {
 	}
 
 	seen := make(map[string]bool)
-	var authorities []AuthorityListResponse
-	for _, role := range user.Roles {
+	var authorities []authority.ListResponse
+	for _, role := range account.Roles {
 		for _, a := range role.Authorities {
 			if !seen[a.Code] {
 				seen[a.Code] = true
-				authorities = append(authorities, AuthorityListResponse{
+				authorities = append(authorities, authority.ListResponse{
 					UUID:      a.UUID,
 					Name:      a.Name,
 					Code:      a.Code,
@@ -83,7 +84,7 @@ func Login(input LoginInput) (LoginResponse, error) {
 
 	return LoginResponse{
 		Token:       tokenStr,
-		User:        toUserResponse(user),
+		User:        user.ToResponse(account),
 		Authorities: authorities,
 	}, nil
 }
