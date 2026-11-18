@@ -1,8 +1,7 @@
-package repositories
+package geography
 
 import (
 	"safari-quest-api/database"
-	"safari-quest-api/models"
 	"safari-quest-api/pkg/pagination"
 
 	"github.com/google/uuid"
@@ -15,15 +14,15 @@ var geographySortColumns = map[string]string{
 	"updated_at": "updated_at",
 }
 
-func GeographyFindAll(params pagination.Params, parentUUID *uuid.UUID) ([]models.Geography, int64, error) {
-	var geographies []models.Geography
+func FindAll(params pagination.Params, parentUUID *uuid.UUID) ([]Geography, int64, error) {
+	var geographies []Geography
 	var total int64
 
-	db := database.GORM_DB.Model(&models.Geography{})
+	db := database.GORM_DB.Model(&Geography{})
 
 	if parentUUID != nil {
 		// Explicit parent filter — return only direct children of that parent.
-		parent, err := GeographyFindParentByUUID(*parentUUID)
+		parent, err := FindParentByUUID(*parentUUID)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -51,8 +50,8 @@ func GeographyFindAll(params pagination.Params, parentUUID *uuid.UUID) ([]models
 	return geographies, total, result.Error
 }
 
-func GeographyFindByUUID(uuid uuid.UUID) (models.Geography, error) {
-	var geography models.Geography
+func FindByUUID(uuid uuid.UUID) (Geography, error) {
+	var geography Geography
 	result := database.GORM_DB.
 		Preload("GeographyType").
 		Preload("Parent").
@@ -62,17 +61,17 @@ func GeographyFindByUUID(uuid uuid.UUID) (models.Geography, error) {
 	return geography, result.Error
 }
 
-func GeographyFindParentByUUID(uuid uuid.UUID) (models.Geography, error) {
-	var geography models.Geography
+func FindParentByUUID(uuid uuid.UUID) (Geography, error) {
+	var geography Geography
 	result := database.GORM_DB.Select("id, uuid").First(&geography, "uuid = ?", uuid)
 	return geography, result.Error
 }
 
-func GeographyCreate(geography *models.Geography) error {
+func Insert(geography *Geography) error {
 	return database.GORM_DB.Create(geography).Error
 }
 
-func GeographyUpdate(geography *models.Geography) error {
+func Save(geography *Geography) error {
 	updates := map[string]interface{}{
 		"name":              geography.Name,
 		"code":              geography.Code,
@@ -84,15 +83,15 @@ func GeographyUpdate(geography *models.Geography) error {
 	}
 	// Use a clean model with only the primary key to prevent GORM from trying
 	// to upsert preloaded associations (Parent, Children) before the update.
-	return database.GORM_DB.Model(&models.Geography{ID: geography.ID}).Updates(updates).Error
+	return database.GORM_DB.Model(&Geography{ID: geography.ID}).Updates(updates).Error
 }
 
-func GeographyDelete(uuid uuid.UUID) error {
-	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.Geography{}).Error
+func Remove(uuid uuid.UUID) error {
+	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&Geography{}).Error
 }
 
-func GeographyFindByUUIDs(uuids []uuid.UUID) ([]models.Geography, error) {
-	var geographies []models.Geography
+func FindByUUIDs(uuids []uuid.UUID) ([]Geography, error) {
+	var geographies []Geography
 	result := database.GORM_DB.Where("uuid IN ?", uuids).Find(&geographies)
 	return geographies, result.Error
 }
