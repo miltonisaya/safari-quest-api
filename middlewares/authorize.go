@@ -2,10 +2,10 @@ package middlewares
 
 import (
 	"net/http"
+	"safari-quest-api/internal/user"
 
 	"safari-quest-api/pkg/authority"
 	"safari-quest-api/pkg/response"
-	"safari-quest-api/repositories"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -30,7 +30,7 @@ func Authorize() gin.HandlerFunc {
 			return
 		}
 
-		hasAuthority, err := repositories.UserHasAuthority(userUUID.(uuid.UUID), authorityCode)
+		hasAuthority, err := user.HasAuthority(userUUID.(uuid.UUID), authorityCode)
 		if err != nil {
 			response.Error(c, http.StatusInternalServerError, "Authorization check failed")
 			c.Abort()
