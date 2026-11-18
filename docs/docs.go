@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.LoginInput"
+                            "$ref": "#/definitions/auth.LoginInput"
                         }
                     }
                 ],
@@ -51,7 +51,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.LoginResponse"
+                                            "$ref": "#/definitions/auth.LoginResponse"
                                         }
                                     }
                                 }
@@ -108,7 +108,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/services.AuthorityListResponse"
+                                                "$ref": "#/definitions/authority.ListResponse"
                                             }
                                         }
                                     }
@@ -194,7 +194,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/pagination.Result-services_GeographyResponse"
+                                            "$ref": "#/definitions/pagination.Result-geography_Response"
                                         }
                                     }
                                 }
@@ -239,7 +239,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.GeographyInput"
+                            "$ref": "#/definitions/geography.Input"
                         }
                     }
                 ],
@@ -255,7 +255,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.GeographyResponse"
+                                            "$ref": "#/definitions/geography.Response"
                                         }
                                     }
                                 }
@@ -313,7 +313,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.GeographyResponse"
+                                            "$ref": "#/definitions/geography.Response"
                                         }
                                     }
                                 }
@@ -371,7 +371,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.GeographyInput"
+                            "$ref": "#/definitions/geography.Input"
                         }
                     }
                 ],
@@ -387,7 +387,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.GeographyResponse"
+                                            "$ref": "#/definitions/geography.Response"
                                         }
                                     }
                                 }
@@ -528,7 +528,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/pagination.Result-services_GeographyTypeResponse"
+                                            "$ref": "#/definitions/pagination.Result-safari-quest-api_internal_geographytype_Response"
                                         }
                                     }
                                 }
@@ -567,7 +567,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.GeographyTypeInput"
+                            "$ref": "#/definitions/safari-quest-api_internal_geographytype.Input"
                         }
                     }
                 ],
@@ -583,7 +583,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.GeographyTypeResponse"
+                                            "$ref": "#/definitions/safari-quest-api_internal_geographytype.Response"
                                         }
                                     }
                                 }
@@ -641,7 +641,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.GeographyTypeResponse"
+                                            "$ref": "#/definitions/safari-quest-api_internal_geographytype.Response"
                                         }
                                     }
                                 }
@@ -699,7 +699,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.GeographyTypeInput"
+                            "$ref": "#/definitions/safari-quest-api_internal_geographytype.Input"
                         }
                     }
                 ],
@@ -715,7 +715,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.GeographyTypeResponse"
+                                            "$ref": "#/definitions/safari-quest-api_internal_geographytype.Response"
                                         }
                                     }
                                 }
@@ -856,7 +856,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/pagination.Result-services_MenuResponse"
+                                            "$ref": "#/definitions/pagination.Result-menu_Response"
                                         }
                                     }
                                 }
@@ -895,7 +895,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.MenuInput"
+                            "$ref": "#/definitions/menu.Input"
                         }
                     }
                 ],
@@ -911,7 +911,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.MenuResponse"
+                                            "$ref": "#/definitions/menu.Response"
                                         }
                                     }
                                 }
@@ -969,7 +969,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.MenuResponse"
+                                            "$ref": "#/definitions/menu.Response"
                                         }
                                     }
                                 }
@@ -1027,7 +1027,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.MenuInput"
+                            "$ref": "#/definitions/menu.Input"
                         }
                     }
                 ],
@@ -1043,7 +1043,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.MenuResponse"
+                                            "$ref": "#/definitions/menu.Response"
                                         }
                                     }
                                 }
@@ -1184,7 +1184,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/pagination.Result-services_RoleResponse"
+                                            "$ref": "#/definitions/pagination.Result-role_Response"
                                         }
                                     }
                                 }
@@ -1223,7 +1223,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.RoleInput"
+                            "$ref": "#/definitions/role.Input"
                         }
                     }
                 ],
@@ -1239,7 +1239,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.RoleResponse"
+                                            "$ref": "#/definitions/role.Response"
                                         }
                                     }
                                 }
@@ -1297,7 +1297,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.RoleResponse"
+                                            "$ref": "#/definitions/role.Response"
                                         }
                                     }
                                 }
@@ -1355,7 +1355,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.RoleInput"
+                            "$ref": "#/definitions/role.Input"
                         }
                     }
                 ],
@@ -1371,7 +1371,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.RoleResponse"
+                                            "$ref": "#/definitions/role.Response"
                                         }
                                     }
                                 }
@@ -1487,7 +1487,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/services.AuthorityListResponse"
+                                                "$ref": "#/definitions/authority.ListResponse"
                                             }
                                         }
                                     }
@@ -1546,7 +1546,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.RoleAuthoritiesInput"
+                            "$ref": "#/definitions/role.AuthoritiesInput"
                         }
                     }
                 ],
@@ -1564,7 +1564,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/services.AuthorityListResponse"
+                                                "$ref": "#/definitions/authority.ListResponse"
                                             }
                                         }
                                     }
@@ -1656,7 +1656,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/pagination.Result-services_UserResponse"
+                                            "$ref": "#/definitions/pagination.Result-user_Response"
                                         }
                                     }
                                 }
@@ -1695,7 +1695,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.UserInput"
+                            "$ref": "#/definitions/user.Input"
                         }
                     }
                 ],
@@ -1711,7 +1711,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.UserResponse"
+                                            "$ref": "#/definitions/user.Response"
                                         }
                                     }
                                 }
@@ -1769,7 +1769,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.UserResponse"
+                                            "$ref": "#/definitions/user.Response"
                                         }
                                     }
                                 }
@@ -1827,7 +1827,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/services.UserInput"
+                            "$ref": "#/definitions/user.Input"
                         }
                     }
                 ],
@@ -1843,7 +1843,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/services.UserResponse"
+                                            "$ref": "#/definitions/user.Response"
                                         }
                                     }
                                 }
@@ -1958,6 +1958,210 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "auth.LoginInput": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "authorities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/authority.ListResponse"
+                    }
+                },
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/user.Response"
+                }
+            }
+        },
+        "authority.ListResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "geography.Input": {
+            "type": "object",
+            "required": [
+                "code",
+                "geographyTypeUuid",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "geographyTypeUuid": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parentUuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "geography.Response": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/geography.Response"
+                    }
+                },
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "geographyType": {
+                    "$ref": "#/definitions/safari-quest-api_internal_geographytype.Response"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parentUuid": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "menu.AuthorityResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "menu.Input": {
+            "type": "object",
+            "required": [
+                "authorityUuid",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "authorityUuid": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parentUuid": {
+                    "type": "string"
+                },
+                "route": {
+                    "type": "string"
+                },
+                "sortOrder": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "menu.Response": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "authority": {
+                    "$ref": "#/definitions/menu.AuthorityResponse"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/menu.Response"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parentUuid": {
+                    "type": "string"
+                },
+                "route": {
+                    "type": "string"
+                },
+                "sortOrder": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
         "pagination.Meta": {
             "type": "object",
             "properties": {
@@ -1984,13 +2188,13 @@ const docTemplate = `{
                 }
             }
         },
-        "pagination.Result-services_GeographyResponse": {
+        "pagination.Result-geography_Response": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/services.GeographyResponse"
+                        "$ref": "#/definitions/geography.Response"
                     }
                 },
                 "meta": {
@@ -1998,13 +2202,13 @@ const docTemplate = `{
                 }
             }
         },
-        "pagination.Result-services_GeographyTypeResponse": {
+        "pagination.Result-menu_Response": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/services.GeographyTypeResponse"
+                        "$ref": "#/definitions/menu.Response"
                     }
                 },
                 "meta": {
@@ -2012,13 +2216,13 @@ const docTemplate = `{
                 }
             }
         },
-        "pagination.Result-services_MenuResponse": {
+        "pagination.Result-role_Response": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/services.MenuResponse"
+                        "$ref": "#/definitions/role.Response"
                     }
                 },
                 "meta": {
@@ -2026,13 +2230,13 @@ const docTemplate = `{
                 }
             }
         },
-        "pagination.Result-services_RoleResponse": {
+        "pagination.Result-safari-quest-api_internal_attractiontype_Response": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/services.RoleResponse"
+                        "$ref": "#/definitions/safari-quest-api_internal_attractiontype.Response"
                     }
                 },
                 "meta": {
@@ -2040,13 +2244,27 @@ const docTemplate = `{
                 }
             }
         },
-        "pagination.Result-services_UserResponse": {
+        "pagination.Result-safari-quest-api_internal_geographytype_Response": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/services.UserResponse"
+                        "$ref": "#/definitions/safari-quest-api_internal_geographytype.Response"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/pagination.Meta"
+                }
+            }
+        },
+        "pagination.Result-user_Response": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.Response"
                     }
                 },
                 "meta": {
@@ -2082,246 +2300,7 @@ const docTemplate = `{
                 "StatusError"
             ]
         },
-        "services.AuthorityListResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.AuthorityResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.GeographyInput": {
-            "type": "object",
-            "required": [
-                "code",
-                "geographyTypeUuid",
-                "name"
-            ],
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "geographyTypeUuid": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "parentUuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.GeographyResponse": {
-            "type": "object",
-            "properties": {
-                "children": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/services.GeographyResponse"
-                    }
-                },
-                "code": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "geographyType": {
-                    "$ref": "#/definitions/services.GeographyTypeResponse"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "parentUuid": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.GeographyTypeInput": {
-            "type": "object",
-            "required": [
-                "code",
-                "name"
-            ],
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.GeographyTypeResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.LoginInput": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.LoginResponse": {
-            "type": "object",
-            "properties": {
-                "authorities": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/services.AuthorityListResponse"
-                    }
-                },
-                "token": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/services.UserResponse"
-                }
-            }
-        },
-        "services.MenuInput": {
-            "type": "object",
-            "required": [
-                "authorityUuid",
-                "name",
-                "type"
-            ],
-            "properties": {
-                "active": {
-                    "type": "boolean"
-                },
-                "authorityUuid": {
-                    "type": "string"
-                },
-                "icon": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "parentUuid": {
-                    "type": "string"
-                },
-                "route": {
-                    "type": "string"
-                },
-                "sortOrder": {
-                    "type": "integer"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.MenuResponse": {
-            "type": "object",
-            "properties": {
-                "active": {
-                    "type": "boolean"
-                },
-                "authority": {
-                    "$ref": "#/definitions/services.AuthorityResponse"
-                },
-                "children": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/services.MenuResponse"
-                    }
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "icon": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "parentUuid": {
-                    "type": "string"
-                },
-                "route": {
-                    "type": "string"
-                },
-                "sortOrder": {
-                    "type": "integer"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "services.RoleAuthoritiesInput": {
+        "role.AuthoritiesInput": {
             "type": "object",
             "required": [
                 "authority_uuids"
@@ -2336,7 +2315,7 @@ const docTemplate = `{
                 }
             }
         },
-        "services.RoleInput": {
+        "role.Input": {
             "type": "object",
             "required": [
                 "code",
@@ -2351,7 +2330,7 @@ const docTemplate = `{
                 }
             }
         },
-        "services.RoleResponse": {
+        "role.Response": {
             "type": "object",
             "properties": {
                 "code": {
@@ -2371,7 +2350,77 @@ const docTemplate = `{
                 }
             }
         },
-        "services.UserInput": {
+        "safari-quest-api_internal_attractiontype.Input": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "safari-quest-api_internal_attractiontype.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "safari-quest-api_internal_geographytype.Input": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "safari-quest-api_internal_geographytype.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.Input": {
             "type": "object",
             "required": [
                 "address",
@@ -2413,7 +2462,7 @@ const docTemplate = `{
                 }
             }
         },
-        "services.UserResponse": {
+        "user.Response": {
             "type": "object",
             "properties": {
                 "address": {
@@ -2446,7 +2495,7 @@ const docTemplate = `{
                 "roles": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/services.RoleResponse"
+                        "$ref": "#/definitions/role.Response"
                     }
                 },
                 "sex": {
