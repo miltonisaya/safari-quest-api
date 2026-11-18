@@ -1,12 +1,10 @@
-package controllers
+package websocket
 
 import (
-	ws "safari-quest-api/websocket"
-
 	"github.com/gin-gonic/gin"
 )
 
-type WSController struct{}
+type Controller struct{}
 
 // Connect godoc
 //
@@ -18,6 +16,6 @@ type WSController struct{}
 //	@Success		101		{string}	string	"Switching Protocols"
 //	@Failure		401		{object}	response.CustomApiResponse
 //	@Router			/ws [get]
-func (controller WSController) Connect(c *gin.Context) {
-	ws.ServeWS(ws.GlobalHub, c.Writer, c.Request)
+func (controller Controller) Connect(c *gin.Context) {
+	ServeWS(GlobalHub, c.Writer, c.Request)
 }
