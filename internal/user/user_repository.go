@@ -1,8 +1,8 @@
-package repositories
+package user
 
 import (
 	"safari-quest-api/database"
-	"safari-quest-api/models"
+	"safari-quest-api/internal/role"
 	"safari-quest-api/pkg/pagination"
 
 	"github.com/google/uuid"
@@ -17,11 +17,11 @@ var userSortColumns = map[string]string{
 	"updated_at": "updated_at",
 }
 
-func UserFindAll(params pagination.Params) ([]models.User, int64, error) {
-	var users []models.User
+func FindAll(params pagination.Params) ([]User, int64, error) {
+	var users []User
 	var total int64
 
-	db := database.GORM_DB.Model(&models.User{})
+	db := database.GORM_DB.Model(&User{})
 
 	if params.Search != "" {
 		term := "%" + params.Search + "%"
@@ -40,19 +40,19 @@ func UserFindAll(params pagination.Params) ([]models.User, int64, error) {
 	return users, total, result.Error
 }
 
-func UserFindByUUID(uuid uuid.UUID) (models.User, error) {
-	var user models.User
+func FindByUUID(uuid uuid.UUID) (User, error) {
+	var user User
 	result := database.GORM_DB.Preload("Roles").First(&user, "uuid = ?", uuid)
 	return user, result.Error
 }
 
-func UserFindByEmail(email string) (models.User, error) {
-	var user models.User
+func FindByEmail(email string) (User, error) {
+	var user User
 	result := database.GORM_DB.Preload("Roles.Authorities").Where("email = ?", email).First(&user)
 	return user, result.Error
 }
 
-func UserCreate(user *models.User, roles []models.Role) error {
+func Insert(user *User, roles []role.Role) error {
 	return database.GORM_DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Omit("Roles.*").Create(user).Error; err != nil {
 			return err
@@ -62,7 +62,7 @@ func UserCreate(user *models.User, roles []models.Role) error {
 	})
 }
 
-func UserUpdate(user *models.User, roles []models.Role) error {
+func Save(user *User, roles []role.Role) error {
 	return database.GORM_DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(user).Error; err != nil {
 			return err
@@ -72,15 +72,15 @@ func UserUpdate(user *models.User, roles []models.Role) error {
 	})
 }
 
-func UserDelete(uuid uuid.UUID) error {
-	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&models.User{}).Error
+func Remove(uuid uuid.UUID) error {
+	return database.GORM_DB.Where("uuid = ?", uuid).Delete(&User{}).Error
 }
 
-// UserHasAuthority checks whether the user identified by userUUID holds any
+// HasAuthority checks whether the user identified by userUUID holds any
 // role that grants the given authority code. It does this in a single JOIN
 // query across users → user_roles → roles → role_authorities → authorities
 // rather than preloading the full object graph, keeping the hot-path check fast.
-func UserHasAuthority(userUUID uuid.UUID, authorityCode string) (bool, error) {
+func HasAuthority(userUUID uuid.UUID, authorityCode string) (bool, error) {
 	var count int64
 	result := database.GORM_DB.
 		Table("users u").
