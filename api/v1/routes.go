@@ -8,11 +8,14 @@ import (
 	"safari-quest-api/internal/attractioncategory"
 	"safari-quest-api/internal/auth"
 	"safari-quest-api/internal/authority"
+	"safari-quest-api/internal/fileresource"
+	"safari-quest-api/internal/fileresourcetype"
 	"safari-quest-api/internal/geography"
 	"safari-quest-api/internal/geographytype"
 	"safari-quest-api/internal/menu"
 	"safari-quest-api/internal/role"
 	"safari-quest-api/internal/touroperator"
+	"safari-quest-api/internal/tourpackage"
 	"safari-quest-api/internal/user"
 	"safari-quest-api/middlewares"
 	"safari-quest-api/pkg/response"
@@ -26,6 +29,7 @@ import (
 func RegisterRoutes(rg *gin.RouterGroup) {
 	// Public routes — no authentication required.
 	rg.GET("/health", healthCheck)
+	rg.GET("/uploads/:name", fileresource.Serve)
 	auth.RegisterRoutes(rg)
 
 	// WebSocket — authenticated, but not behind Authorize().
@@ -45,6 +49,9 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	attractioncategory.RegisterRoutes(protected)
 	touroperator.RegisterRoutes(protected)
 	attraction.RegisterRoutes(protected)
+	fileresourcetype.RegisterRoutes(protected)
+	fileresource.RegisterRoutes(protected)
+	tourpackage.RegisterRoutes(protected)
 }
 
 func healthCheck(c *gin.Context) {
