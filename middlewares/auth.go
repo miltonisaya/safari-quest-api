@@ -1,15 +1,18 @@
 package middlewares
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"safari-quest-api/config"
+	"safari-quest-api/internal/user"
 	"safari-quest-api/pkg/response"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // Auth validates a Bearer JWT in the Authorization header.
@@ -66,6 +69,23 @@ func Auth() gin.HandlerFunc {
 		userUUID, err := uuid.Parse(sub)
 		if err != nil {
 			response.Fail(c, http.StatusUnauthorized, "Token subject is not a valid UUID", nil)
+			c.Abort()
+			return
+		}
+
+		// A token issued before deactivation must stop working on the next request.
+		active, err := user.Active(userUUID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				response.Fail(c, http.StatusUnauthorized, "Invalid or expired token", nil)
+			} else {
+				response.Error(c, http.StatusInternalServerError, "Failed to verify account")
+			}
+			c.Abort()
+			return
+		}
+		if !active {
+			response.Fail(c, http.StatusForbidden, "account is inactive", nil)
 			c.Abort()
 			return
 		}
