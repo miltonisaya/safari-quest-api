@@ -54,14 +54,18 @@ internal/role/
 └── role_routes.go       # RegisterRoutes(rg) — the feature's paths
 ```
 
-Features: `auth` (no model/repository), `authority`, `role`, `user`, `menu`, `geographytype` (files prefixed `geography_type_`), `geography`. The `/ws` controller and route live in `websocket/`.
+Features: `auth` (no model/repository), `authority`, `role`, `user`, `menu`, `geographytype` (files prefixed `geography_type_`), `geography`, `attractiontype`, `attractioncategory`, `touroperator` (files prefixed `tour_operator_`), `attraction`. The `/ws` controller and route live in `websocket/`.
 
 Naming inside a package (the layers share one namespace, so names must not collide):
 - Service: `GetAll`, `GetByUUID`, `Create`, `Update`, `Delete`; DTOs `Input`, `Response`; `ToResponse` when another feature needs the conversion
 - Repository: `FindAll`, `FindByUUID`, `FindByUUIDs`, `Insert`, `Save`, `Remove`
 - Controller type: `Controller`
 
-Dependencies point one way only: `user → role → authority`, `menu → authority`, `geography → geographytype`, `auth → user`. Go forbids import cycles, so never add a back-reference field (e.g. `Authority.Roles`) or a call from a lower feature into a higher one. Feature routes must not import `middlewares` (that would cycle through `user` → `websocket`); `api/v1/routes.go` passes in an already-protected group instead.
+Dependencies point one way only: `user → role → authority`, `menu → authority`, `geography → geographytype`, `auth → user`, `touroperator → user, geography`, `attraction → attractiontype, attractioncategory, geography, touroperator`. Go forbids import cycles, so never add a back-reference field (e.g. `Authority.Roles`) or a call from a lower feature into a higher one. Feature routes must not import `middlewares` (that would cycle through `user` → `websocket`); `api/v1/routes.go` passes in an already-protected group instead.
+
+Authority codes are derived from the last non-parameter path segment (`pkg/authority`), so a nested route like `/tour-operators/:uuid/staff` gets `staff_*` codes. Never nest a route under a segment that already names another resource (e.g. `/users`), or its permission would also grant that resource's global endpoints.
+
+Tour operator staff live in the `tour_operator_users` pivot. The `/tour-operators/:uuid/staff` endpoints additionally require the caller to be staff of that operator or hold the `ADMINISTRATOR` role, and staff may only grant roles they hold themselves.
 
 When adding a feature: create `internal/<feature>/` with the files above, call its `RegisterRoutes` from `api/v1/routes.go`, and let Air (or `swag init`) regenerate `docs/`.
 
