@@ -6,6 +6,7 @@ import (
 	"safari-quest-api/internal/authority"
 	"safari-quest-api/internal/role"
 	"safari-quest-api/internal/user"
+	"strings"
 
 	"safari-quest-api/config"
 	"safari-quest-api/database"
@@ -17,12 +18,16 @@ import (
 )
 
 // SyncAuthorities always runs on startup. It discovers all registered routes,
-// upserts their authority codes into the DB, and ensures the Administrator role
-// holds every authority. This is idempotent — safe to run on every boot.
+// upserts their authority codes into the DB, ensures the Administrator role
+// holds every authority, and fills in any missing default menus. This is
+// idempotent — safe to run on every boot.
 func SyncAuthorities(router *gin.Engine) {
 	log.Println("[seeder] syncing authorities...")
 	authorities := seedAuthorities(router)
 	seedAdminRole(authorities)
+	grantTourOperatorUserAccess()
+	SeedMenus()
+	ensureFeatureMenus()
 	log.Println("[seeder] authority sync done")
 }
 
@@ -50,6 +55,9 @@ func seedAuthorities(router *gin.Engine) []authority.Authority {
 	seeded := make([]authority.Authority, 0)
 
 	for _, route := range router.Routes() {
+		if strings.Contains(route.Path, "/uploads/") {
+			continue
+		}
 		code := authoritycode.DeriveCode(route.Method, route.Path)
 		if code == "" || seen[code] {
 			continue
@@ -98,6 +106,49 @@ func seedAdminRole(authorities []authority.Authority) role.Role {
 
 	log.Println("[seeder] Administrator role ready")
 	return adminRole
+}
+
+// grantTourOperatorUserAccess lets a tour operator open the menu, manage
+// users in their company, sell packages, and upload files. Company limits
+// stay in the user, package, and file services.
+func grantTourOperatorUserAccess() {
+	var opRole role.Role
+	if err := database.GORM_DB.Where("code = ?", "TOUR_OPERATOR").First(&opRole).Error; err != nil {
+		return
+	}
+	codes := []string{
+		"menu_get", "user_get", "user_post", "user_put", "user_delete",
+		"package_get", "package_post", "package_put", "package_delete",
+		"file-resource_get", "file-resource_post", "file-resource_put", "file-resource_delete",
+		"file-resource-type_get",
+	}
+	var wanted []authority.Authority
+	if err := database.GORM_DB.Where("code IN ?", codes).Find(&wanted).Error; err != nil {
+		log.Printf("[seeder] could not load tour operator authorities: %v\n", err)
+		return
+	}
+	var held []authority.Authority
+	if err := database.GORM_DB.Model(&opRole).Association("Authorities").Find(&held); err != nil {
+		log.Printf("[seeder] could not read tour operator authorities: %v\n", err)
+		return
+	}
+	have := make(map[string]bool, len(held))
+	for _, item := range held {
+		have[item.Code] = true
+	}
+	missing := make([]authority.Authority, 0)
+	for _, item := range wanted {
+		if !have[item.Code] {
+			missing = append(missing, item)
+		}
+	}
+	if len(missing) == 0 {
+		return
+	}
+	if err := database.GORM_DB.Session(&gorm.Session{FullSaveAssociations: false}).
+		Model(&opRole).Association("Authorities").Append(missing); err != nil {
+		log.Printf("[seeder] could not grant tour operator user access: %v\n", err)
+	}
 }
 
 // seedSuperUser creates the super admin user if they do not already exist and
