@@ -16,6 +16,7 @@ type config struct {
 	AdminEmail           string
 	AdminDefaultPassword string
 	SwaggerHost          string
+	UploadDir            string
 }
 
 var App config
@@ -35,6 +36,7 @@ func Load() {
 		AdminEmail:           getEnv("ADMIN_EMAIL", ""),
 		AdminDefaultPassword: getEnv("ADMIN_DEFAULT_PASSWORD", ""),
 		SwaggerHost:          getEnv("SWAGGER_HOST", "localhost:"+port),
+		UploadDir:            getEnv("UPLOAD_DIR", "uploads"),
 	}
 }
 
