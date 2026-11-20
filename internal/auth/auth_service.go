@@ -66,7 +66,7 @@ func Login(input LoginInput) (LoginResponse, error) {
 	}
 
 	seen := make(map[string]bool)
-	var authorities []authority.ListResponse
+	authorities := make([]authority.ListResponse, 0)
 	for _, role := range account.Roles {
 		for _, a := range role.Authorities {
 			if !seen[a.Code] {
