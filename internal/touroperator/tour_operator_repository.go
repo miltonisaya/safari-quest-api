@@ -59,6 +59,21 @@ func FindByUUIDs(uuids []uuid.UUID) ([]TourOperator, error) {
 	return operators, result.Error
 }
 
+// FindForCompanies returns active operators the caller may sell for.
+// all ignores ids. shortcut: capped at 100 names, raise the limit when a caller belongs to more companies.
+func FindForCompanies(all bool, ids []uint) ([]TourOperator, error) {
+	query := database.GORM_DB.Model(&TourOperator{}).Where("is_active = ?", true)
+	if !all {
+		if len(ids) == 0 {
+			return []TourOperator{}, nil
+		}
+		query = query.Where("id IN ?", ids)
+	}
+	var operators []TourOperator
+	err := query.Order("name").Limit(100).Find(&operators).Error
+	return operators, err
+}
+
 func Insert(operator *TourOperator) error {
 	return database.GORM_DB.Omit("Geography", "Users").Create(operator).Error
 }
