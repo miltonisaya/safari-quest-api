@@ -16,6 +16,10 @@ var menuSortColumns = map[string]string{
 	"updated_at": "updated_at",
 }
 
+func orderedChildren(db *gorm.DB) *gorm.DB {
+	return db.Order("sort_order ASC")
+}
+
 func FindAll(params pagination.Params) ([]Menu, int64, error) {
 	var menus []Menu
 	var total int64
@@ -31,10 +35,10 @@ func FindAll(params pagination.Params) ([]Menu, int64, error) {
 
 	result := db.
 		Preload("Authority").
-		Preload("Children", func(db *gorm.DB) *gorm.DB {
-			return db.Order("sort_order ASC")
-		}).
+		Preload("Children", orderedChildren).
 		Preload("Children.Authority").
+		Preload("Children.Children", orderedChildren).
+		Preload("Children.Children.Authority").
 		Order(params.OrderClause(menuSortColumns, "sort_order")).
 		Offset(params.Offset()).
 		Limit(params.PerPage).
@@ -48,10 +52,10 @@ func FindByUUID(uuid uuid.UUID) (Menu, error) {
 	result := database.GORM_DB.
 		Preload("Authority").
 		Preload("Parent").
-		Preload("Children", func(db *gorm.DB) *gorm.DB {
-			return db.Order("sort_order ASC")
-		}).
+		Preload("Children", orderedChildren).
 		Preload("Children.Authority").
+		Preload("Children.Children", orderedChildren).
+		Preload("Children.Children.Authority").
 		First(&menu, "uuid = ?", uuid)
 	return menu, result.Error
 }
