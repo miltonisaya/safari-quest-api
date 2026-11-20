@@ -4,12 +4,15 @@ import (
 	"net/http"
 	attractionType "safari-quest-api/internal/attractiontype"
 
+	"safari-quest-api/internal/attraction"
+	"safari-quest-api/internal/attractioncategory"
 	"safari-quest-api/internal/auth"
 	"safari-quest-api/internal/authority"
 	"safari-quest-api/internal/geography"
 	"safari-quest-api/internal/geographytype"
 	"safari-quest-api/internal/menu"
 	"safari-quest-api/internal/role"
+	"safari-quest-api/internal/touroperator"
 	"safari-quest-api/internal/user"
 	"safari-quest-api/middlewares"
 	"safari-quest-api/pkg/response"
@@ -39,6 +42,9 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	geography.RegisterRoutes(protected)
 	authority.RegisterRoutes(protected)
 	attractionType.RegisterRoutes(protected)
+	attractioncategory.RegisterRoutes(protected)
+	touroperator.RegisterRoutes(protected)
+	attraction.RegisterRoutes(protected)
 }
 
 func healthCheck(c *gin.Context) {
