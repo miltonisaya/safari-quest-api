@@ -67,7 +67,7 @@ air
 
 On startup the server will:
 1. Run all pending database migrations automatically
-2. Seed authorities, the Administrator role, and a super admin user (when `SEED=true`)
+2. Seed authorities, the Administrator role, and the default menus. When `SEED=true`, also seed the super admin user
 
 ## API Documentation
 
@@ -121,12 +121,16 @@ source .env && goose create <name> sql
 ├── docs/              # Generated Swagger docs (do not edit)
 ├── internal/          # One package per feature; files are named <struct>_<layer>.go:
 │   ├── auth/          #   auth_controller.go, auth_service.go, auth_routes.go (login, JWT)
+│   ├── attraction/    #   attractions; many-to-many with tour operators
+│   ├── attractioncategory/
+│   ├── attractiontype/
 │   ├── authority/     #   authority_model.go, authority_repository.go, authority_service.go,
 │   │                  #   authority_controller.go, authority_routes.go
 │   ├── geography/
 │   ├── geographytype/
 │   ├── menu/
 │   ├── role/
+│   ├── touroperator/  #   companies and their staff (tour_operator_users)
 │   └── user/
 ├── middlewares/       # Recovery, Logger, Auth, Authorize
 ├── migrations/        # Goose SQL migration files
@@ -134,7 +138,7 @@ source .env && goose create <name> sql
 │   ├── authority/     # Authority code derivation shared by middleware and seeder
 │   ├── pagination/    # Paging, search and sort parameters
 │   └── response/      # JSend-style response wrapper (CustomApiResponse)
-├── seeders/           # Auto-discovers routes and seeds authorities, roles, and admin user
+├── seeders/           # Seeds authorities, the Administrator role, default menus, and the admin user
 └── websocket/         # Hub, clients, events, and the /ws controller and route
 ```
 
@@ -144,7 +148,8 @@ each feature declares its own paths in `<struct>_routes.go` via `RegisterRoutes(
 the service exposes `GetAll`, `GetByUUID`, `Create`, `Update` and `Delete`; the repository
 exposes `FindAll`, `FindByUUID`, `Insert`, `Save` and `Remove`; the HTTP handler type is
 `Controller`. Features depend on each other in one direction only
-(`user → role → authority`, `menu → authority`, `geography → geographytype`, `auth → user`),
+(`user → role → authority`, `menu → authority`, `geography → geographytype`, `auth → user`,
+`touroperator → user, geography`, `attraction → attractiontype, attractioncategory, geography, touroperator`),
 so models must not hold back-references that would create an import cycle.
 
 ## Development
