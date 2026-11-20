@@ -154,6 +154,88 @@ definitions:
       uuid:
         type: string
     type: object
+  fileresource.Input:
+    properties:
+      code:
+        type: string
+      file_resource_type_uuid:
+        type: string
+      name:
+        type: string
+      operator_uuid:
+        type: string
+    required:
+    - code
+    - file_resource_type_uuid
+    - name
+    - operator_uuid
+    type: object
+  fileresource.List:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/fileresource.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+      operators:
+        items:
+          $ref: '#/definitions/fileresource.Ref'
+        type: array
+    type: object
+  fileresource.Ref:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  fileresource.Response:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      date_uploaded:
+        type: string
+      file_resource_type:
+        $ref: '#/definitions/fileresource.Ref'
+      name:
+        type: string
+      operator:
+        $ref: '#/definitions/fileresource.Ref'
+      path:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  fileresourcetype.Input:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  fileresourcetype.Response:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
   geography.Input:
     properties:
       code:
@@ -318,6 +400,15 @@ definitions:
       items:
         items:
           $ref: '#/definitions/attractioncategory.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  pagination.Result-fileresourcetype_Response:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/fileresourcetype.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
@@ -507,6 +598,103 @@ definitions:
       website:
         type: string
     type: object
+  tourpackage.FileRef:
+    properties:
+      code:
+        type: string
+      file_resource_type:
+        $ref: '#/definitions/tourpackage.Ref'
+      name:
+        type: string
+      path:
+        type: string
+      uuid:
+        type: string
+    type: object
+  tourpackage.Input:
+    properties:
+      description:
+        type: string
+      end_date:
+        type: string
+      file_resource_uuids:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      operator_uuid:
+        type: string
+      package_type:
+        type: string
+      pax:
+        minimum: 1
+        type: integer
+      price:
+        minimum: 0
+        type: number
+      start_date:
+        type: string
+    required:
+    - description
+    - end_date
+    - name
+    - operator_uuid
+    - package_type
+    - pax
+    - start_date
+    type: object
+  tourpackage.List:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/tourpackage.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+      operators:
+        items:
+          $ref: '#/definitions/tourpackage.Ref'
+        type: array
+    type: object
+  tourpackage.Ref:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  tourpackage.Response:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      end_date:
+        type: string
+      file_resources:
+        items:
+          $ref: '#/definitions/tourpackage.FileRef'
+        type: array
+      name:
+        type: string
+      operator:
+        $ref: '#/definitions/tourpackage.Ref'
+      package_type:
+        type: string
+      pax:
+        type: integer
+      price:
+        type: number
+      start_date:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
   user.Input:
     properties:
       address:
@@ -567,6 +755,40 @@ definitions:
         type: string
       uuid:
         type: string
+    type: object
+  user.UpdateInput:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      is_active:
+        type: boolean
+      last_name:
+        type: string
+      middle_name:
+        type: string
+      mobile:
+        type: string
+      reset_password:
+        type: boolean
+      role_ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      sex:
+        type: string
+    required:
+    - address
+    - email
+    - first_name
+    - last_name
+    - mobile
+    - role_ids
+    - sex
     type: object
 info:
   contact: {}
@@ -1258,6 +1480,294 @@ paths:
       summary: List authorities
       tags:
       - Authorities
+  /file-resource-types:
+    get:
+      description: Return a paginated list of file resource types
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-fileresourcetype_Response'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List file resource types
+      tags:
+      - File Resource Types
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: File resource type
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/fileresourcetype.Input'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/fileresourcetype.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Create file resource type
+      tags:
+      - File Resource Types
+  /file-resource-types/{uuid}:
+    delete:
+      parameters:
+      - description: File resource type UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete file resource type
+      tags:
+      - File Resource Types
+    get:
+      parameters:
+      - description: File resource type UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/fileresourcetype.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get file resource type
+      tags:
+      - File Resource Types
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: File resource type UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: File resource type
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/fileresourcetype.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/fileresourcetype.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update file resource type
+      tags:
+      - File Resource Types
+  /file-resources:
+    get:
+      description: Files the caller may attach to a package. Administrators see every
+        company.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/fileresource.List'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: List file resources
+      tags:
+      - File Resources
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'Multipart fields: file, name, code, file_resource_type_uuid, operator_uuid'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/fileresource.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload a file
+      tags:
+      - File Resources
+  /file-resources/{uuid}:
+    delete:
+      parameters:
+      - description: File resource UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete file resource
+      tags:
+      - File Resources
+    get:
+      parameters:
+      - description: File resource UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/fileresource.Response'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get file resource
+      tags:
+      - File Resources
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: File resource UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: File resource
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/fileresource.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/fileresource.Response'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update file resource details
+      tags:
+      - File Resources
   /geographies:
     get:
       description: Return a paginated list of geographies. Pass parent_uuid to fetch
@@ -1869,6 +2379,129 @@ paths:
       summary: Update menu
       tags:
       - Menus
+  /packages:
+    get:
+      description: Trips for sale. A tour company sees only its own packages.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/tourpackage.List'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: List packages
+      tags:
+      - Packages
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Package
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tourpackage.Input'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/tourpackage.Response'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create package
+      tags:
+      - Packages
+  /packages/{uuid}:
+    delete:
+      parameters:
+      - description: Package UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete package
+      tags:
+      - Packages
+    get:
+      parameters:
+      - description: Package UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/tourpackage.Response'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get package
+      tags:
+      - Packages
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Package UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Package
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tourpackage.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/tourpackage.Response'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update package
+      tags:
+      - Packages
   /roles:
     get:
       description: Return a paginated, searchable, and sortable list of roles
@@ -2530,6 +3163,14 @@ paths:
         in: query
         name: sort_dir
         type: string
+      - description: Filter by role UUID
+        in: query
+        name: role_uuid
+        type: string
+      - description: 'Filter by status: true or false'
+        in: query
+        name: active
+        type: string
       produces:
       - application/json
       responses:
@@ -2542,6 +3183,10 @@ paths:
                 data:
                   $ref: '#/definitions/pagination.Result-user_Response'
               type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -2611,6 +3256,10 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -2660,7 +3309,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update an existing user by UUID
+      description: Update an existing user by UUID. is_active changes status when
+        present. reset_password sets the password back to the system default.
       parameters:
       - description: User UUID
         in: path
@@ -2672,7 +3322,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/user.Input'
+          $ref: '#/definitions/user.UpdateInput'
       produces:
       - application/json
       responses:
@@ -2691,6 +3341,10 @@ paths:
             $ref: '#/definitions/response.CustomApiResponse'
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
           schema:
             $ref: '#/definitions/response.CustomApiResponse'
         "500":
