@@ -65,7 +65,7 @@ func Create(input Input) (Response, error) {
 		return Response{}, err
 	}
 	resp := ToResponse(gt)
-	ws.GlobalHub.Publish(ws.Event{Entity: "role", Action: ws.ActionCreated, Payload: resp})
+	ws.GlobalHub.Publish(ws.Event{Entity: "attractionType", Action: ws.ActionCreated, Payload: resp})
 	return resp, nil
 }
 
