@@ -1,4 +1,79 @@
 definitions:
+  attraction.Input:
+    properties:
+      attraction_category_uuid:
+        type: string
+      attraction_type_uuid:
+        type: string
+      code:
+        type: string
+      description:
+        type: string
+      geography_uuid:
+        type: string
+      is_active:
+        type: boolean
+      latitude:
+        maximum: 90
+        minimum: -90
+        type: number
+      longitude:
+        maximum: 180
+        minimum: -180
+        type: number
+      name:
+        type: string
+      tour_operator_uuids:
+        items:
+          type: string
+        type: array
+    required:
+    - attraction_category_uuid
+    - attraction_type_uuid
+    - code
+    - geography_uuid
+    - name
+    type: object
+  attraction.Ref:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  attraction.Response:
+    properties:
+      attraction_category:
+        $ref: '#/definitions/attraction.Ref'
+      attraction_type:
+        $ref: '#/definitions/attraction.Ref'
+      code:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      geography:
+        $ref: '#/definitions/attraction.Ref'
+      is_active:
+        type: boolean
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      tour_operators:
+        items:
+          $ref: '#/definitions/attraction.Ref'
+        type: array
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
   attractionType.Input:
     properties:
       code:
@@ -10,6 +85,29 @@ definitions:
     - name
     type: object
   attractionType.Response:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  attractioncategory.Input:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  attractioncategory.Response:
     properties:
       code:
         type: string
@@ -197,11 +295,29 @@ definitions:
       total:
         type: integer
     type: object
+  pagination.Result-attraction_Response:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/attraction.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
   pagination.Result-attractionType_Response:
     properties:
       items:
         items:
           $ref: '#/definitions/attractionType.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  pagination.Result-attractioncategory_Response:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/attractioncategory.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
@@ -238,6 +354,15 @@ definitions:
       items:
         items:
           $ref: '#/definitions/role.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  pagination.Result-touroperator_Response:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/touroperator.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
@@ -304,6 +429,84 @@ definitions:
       uuid:
         type: string
     type: object
+  touroperator.GeographyRef:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  touroperator.Input:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      geography_uuid:
+        type: string
+      is_active:
+        type: boolean
+      is_verified:
+        type: boolean
+      legal_name:
+        type: string
+      license_number:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      registration_number:
+        type: string
+      website:
+        type: string
+    required:
+    - code
+    - email
+    - name
+    - phone
+    type: object
+  touroperator.Response:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      geography:
+        $ref: '#/definitions/touroperator.GeographyRef'
+      is_active:
+        type: boolean
+      is_verified:
+        type: boolean
+      legal_name:
+        type: string
+      license_number:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      registration_number:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+      website:
+        type: string
+    type: object
   user.Input:
     properties:
       address:
@@ -368,6 +571,207 @@ definitions:
 info:
   contact: {}
 paths:
+  /attraction-categories:
+    get:
+      description: Return a paginated, searchable, and sortable list of attraction
+        categories
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: 'Sort column: name, code, created_at, updated_at'
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-attractioncategory_Response'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List attraction categories
+      tags:
+      - Attraction Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a new attraction category
+      parameters:
+      - description: Attraction category data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/attractioncategory.Input'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/attractioncategory.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Create attraction category
+      tags:
+      - Attraction Categories
+  /attraction-categories/{uuid}:
+    delete:
+      description: Soft-delete an attraction category by UUID
+      parameters:
+      - description: Attraction category UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete attraction category
+      tags:
+      - Attraction Categories
+    get:
+      description: Return a single attraction category by UUID
+      parameters:
+      - description: Attraction category UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/attractioncategory.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get attraction category
+      tags:
+      - Attraction Categories
+    put:
+      consumes:
+      - application/json
+      description: Update an existing attraction category by UUID
+      parameters:
+      - description: Attraction category UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Attraction category data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/attractioncategory.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/attractioncategory.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update attraction category
+      tags:
+      - Attraction Categories
   /attraction-types:
     get:
       description: Return a paginated, searchable, and sortable list of attraction
@@ -569,6 +973,226 @@ paths:
       summary: Update attraction type
       tags:
       - Attraction Types
+  /attractions:
+    get:
+      description: Return a paginated, searchable, sortable and filterable list of
+        attractions
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name or code
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: 'Sort column: name, code, created_at, updated_at'
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_dir
+        type: string
+      - description: Only attractions of this type
+        in: query
+        name: attraction_type_uuid
+        type: string
+      - description: Only attractions in this category
+        in: query
+        name: attraction_category_uuid
+        type: string
+      - description: Only attractions in this geography
+        in: query
+        name: geography_uuid
+        type: string
+      - description: Only attractions offered by this tour operator
+        in: query
+        name: tour_operator_uuid
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-attraction_Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List attractions
+      tags:
+      - Attractions
+    post:
+      consumes:
+      - application/json
+      description: Create a new attraction linked to a type, category, geography and
+        optional tour operators
+      parameters:
+      - description: Attraction data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/attraction.Input'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/attraction.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Create attraction
+      tags:
+      - Attractions
+  /attractions/{uuid}:
+    delete:
+      description: Soft-delete an attraction by UUID
+      parameters:
+      - description: Attraction UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete attraction
+      tags:
+      - Attractions
+    get:
+      description: Return a single attraction by UUID, with its type, category, geography
+        and tour operators
+      parameters:
+      - description: Attraction UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/attraction.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get attraction
+      tags:
+      - Attractions
+    put:
+      consumes:
+      - application/json
+      description: Update an attraction by UUID; tour_operator_uuids replaces the
+        linked operators
+      parameters:
+      - description: Attraction UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Attraction data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/attraction.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/attraction.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update attraction
+      tags:
+      - Attractions
   /auth/login:
     post:
       consumes:
@@ -1532,6 +2156,352 @@ paths:
       summary: Update role authorities
       tags:
       - Roles
+  /tour-operators:
+    get:
+      description: Return a paginated, searchable, and sortable list of tour operators
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name, code, legal name or email
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: 'Sort column: name, code, created_at, updated_at'
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-touroperator_Response'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List tour operators
+      tags:
+      - Tour Operators
+    post:
+      consumes:
+      - application/json
+      description: Register a new tour operator company
+      parameters:
+      - description: Tour operator data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/touroperator.Input'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/touroperator.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Create tour operator
+      tags:
+      - Tour Operators
+  /tour-operators/{uuid}:
+    delete:
+      description: Soft-delete a tour operator by UUID
+      parameters:
+      - description: Tour operator UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete tour operator
+      tags:
+      - Tour Operators
+    get:
+      description: Return a single tour operator by UUID
+      parameters:
+      - description: Tour operator UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/touroperator.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get tour operator
+      tags:
+      - Tour Operators
+    put:
+      consumes:
+      - application/json
+      description: Update an existing tour operator by UUID
+      parameters:
+      - description: Tour operator UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Tour operator data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/touroperator.Input'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/touroperator.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update tour operator
+      tags:
+      - Tour Operators
+  /tour-operators/{uuid}/staff:
+    get:
+      description: Staff accounts of the tour operator. Only its own staff or a platform
+        administrator may list them.
+      parameters:
+      - description: Tour operator UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name or email
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-user_Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List tour operator users
+      tags:
+      - Tour Operators
+    post:
+      consumes:
+      - application/json
+      description: Create a user account and link it to the tour operator. Operator
+        staff may only grant roles they hold themselves.
+      parameters:
+      - description: Tour operator UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: User data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user.Input'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/user.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Create tour operator user
+      tags:
+      - Tour Operators
+  /tour-operators/{uuid}/staff/{user_uuid}:
+    delete:
+      description: Unlink a user from the tour operator. The user account itself is
+        kept.
+      parameters:
+      - description: Tour operator UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: User UUID
+        in: path
+        name: user_uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove tour operator user
+      tags:
+      - Tour Operators
   /users:
     get:
       description: Return a paginated, searchable, and sortable list of users
