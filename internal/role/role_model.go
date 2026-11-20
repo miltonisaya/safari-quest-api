@@ -20,6 +20,10 @@ type Role struct {
 }
 
 func (r *Role) BeforeCreate(tx *gorm.DB) error {
-	r.UUID = uuid.New()
+	// Saving a user replaces this association and runs the hook on the loaded role.
+	// Keep the UUID the database already has.
+	if r.UUID == uuid.Nil {
+		r.UUID = uuid.New()
+	}
 	return nil
 }
