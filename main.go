@@ -53,8 +53,8 @@ func main() {
 		v1.RegisterRoutes(api.Group("/v1"))
 	}
 
-	// SyncAuthorities always runs so new routes are seeded and granted to the
-	// Administrator role on every boot without manual intervention.
+	// SyncAuthorities always runs so new routes are seeded, granted to the
+	// Administrator role, and the default menus exist, on every boot.
 	seeders.SyncAuthorities(router)
 
 	// Run the full seeder (super admin user creation) only when SEED=true.
