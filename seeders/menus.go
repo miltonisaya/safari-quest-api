@@ -46,9 +46,11 @@ func appMenuTree() []menuSeed {
 				link("Attractions", "/attractions", "park", "/attractions", 10),
 				link("Attraction Types", "/attraction-types", "tag", "/attraction-types", 20),
 				link("Attraction Categories", "/attraction-categories", "label", "/attraction-categories", 30),
-				link("Tour Operators", "/tour-operators", "store", "/tour-operators", 40),
 				link("Packages", "/packages", "inventory", "/packages", 50),
 				link("File Resources", "/file-resources", "attach_file", "/file-resources", 60),
+			),
+			group("Tour Operator Management", "storefront", "/tour-operators", 40,
+				link("Tour Operators", "/tour-operators", "store", "/tour-operators", 10),
 			),
 		),
 		group("Security & Administration", "admin_panel_settings", "/users", 50,
@@ -117,6 +119,64 @@ func ensureFeatureMenus() {
 	ensureLink(packagesParent, "Packages", "/packages", "inventory", "/packages", 50)
 	ensureLink(packagesParent, "File Resources", "/file-resources", "attach_file", "/file-resources", 60)
 	ensureLink(menuIDByChildRoute("/users"), "File Resource Types", "/file-resource-types", "folder_open", "/file-resource-types", 50)
+	ensureTourOperatorMenu()
+}
+
+// ensureTourOperatorMenu puts Tour Operators under its own group. A database
+// that already has the link under Attractions Management is moved.
+// shortcut: an admin who moves this link again is overwritten on the next boot.
+func ensureTourOperatorMenu() {
+	parent := ensureGroup(menuIDByName("Settings"), "Tour Operator Management", "storefront", "/tour-operators", 40)
+	placeLink(parent, "Tour Operators", "/tour-operators", "store", "/tour-operators", 10)
+}
+
+func ensureGroup(parentID *uint, name, icon, apiPath string, sort int) *uint {
+	if id := menuIDByName(name); id != nil {
+		return id
+	}
+	code := authoritycode.DeriveCode(http.MethodGet, "/api/v1"+apiPath)
+	var auth authority.Authority
+	if err := database.GORM_DB.Where("code = ?", code).First(&auth).Error; err != nil {
+		log.Printf("[seeder] skip menu %q: authority %s: %v\n", name, code, err)
+		return nil
+	}
+	record := menu.Menu{
+		Name:        name,
+		Type:        menu.TypeGroup,
+		Icon:        &icon,
+		AuthorityID: auth.ID,
+		ParentID:    parentID,
+		SortOrder:   sort,
+		Active:      true,
+	}
+	if err := database.GORM_DB.Create(&record).Error; err != nil {
+		log.Printf("[seeder] could not create menu %q: %v\n", name, err)
+		return nil
+	}
+	return &record.ID
+}
+
+func placeLink(parentID *uint, name, route, icon, apiPath string, sort int) {
+	if parentID == nil {
+		log.Printf("[seeder] skip menu %q: no parent\n", name)
+		return
+	}
+	var existing menu.Menu
+	err := database.GORM_DB.Where("route = ?", route).First(&existing).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		ensureLink(parentID, name, route, icon, apiPath, sort)
+		return
+	}
+	if err != nil {
+		log.Printf("[seeder] menu lookup %q: %v\n", name, err)
+		return
+	}
+	if existing.ParentID != nil && *existing.ParentID == *parentID {
+		return
+	}
+	if err := database.GORM_DB.Model(&existing).Update("parent_id", *parentID).Error; err != nil {
+		log.Printf("[seeder] could not move menu %q: %v\n", name, err)
+	}
 }
 
 func menuIDByName(name string) *uint {
