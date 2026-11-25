@@ -130,6 +130,9 @@ source .env && goose create <name> sql
 │   ├── geographytype/
 │   ├── menu/
 │   ├── role/
+│   ├── catalog/       #   public, read-only package catalog for the website (no sign-in)
+│   ├── booking/       #   seats on packages: staff and traveler self-service routes
+│   ├── review/        #   traveler reviews of completed trips, company replies, moderation
 │   ├── touroperator/  #   companies and their staff (tour_operator_users)
 │   └── user/
 ├── middlewares/       # Recovery, Logger, Auth, Authorize
@@ -149,7 +152,9 @@ the service exposes `GetAll`, `GetByUUID`, `Create`, `Update` and `Delete`; the 
 exposes `FindAll`, `FindByUUID`, `Insert`, `Save` and `Remove`; the HTTP handler type is
 `Controller`. Features depend on each other in one direction only
 (`user → role → authority`, `menu → authority`, `geography → geographytype`, `auth → user`,
-`touroperator → user, geography`, `attraction → attractiontype, attractioncategory, geography, touroperator`),
+`touroperator → user, geography`, `attraction → attractiontype, attractioncategory, geography, touroperator`,
+`booking → tourpackage, touroperator, user, companyscope`,
+`review → booking, tourpackage, user, companyscope`),
 so models must not hold back-references that would create an import cycle.
 
 ## Development
