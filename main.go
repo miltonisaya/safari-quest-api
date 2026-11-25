@@ -62,5 +62,11 @@ func main() {
 		seeders.Run(router)
 	}
 
+	// Load the demo tour companies and packages for the public website only
+	// when SEED_DEMO=true. Safe to leave on: existing demo rows are skipped.
+	if config.App.SeedDemo {
+		seeders.SeedDemoPackages()
+	}
+
 	router.Run(":" + config.App.ServerPort)
 }
