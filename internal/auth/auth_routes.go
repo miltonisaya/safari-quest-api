@@ -7,4 +7,5 @@ import "github.com/gin-gonic/gin"
 func RegisterRoutes(rg *gin.RouterGroup) {
 	controller := Controller{}
 	rg.POST("/auth/login", controller.Login)
+	rg.POST("/auth/register", controller.Register)
 }
