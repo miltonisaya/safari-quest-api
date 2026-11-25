@@ -66,8 +66,16 @@ func TestAppMenuTree(t *testing.T) {
 	if !seenRouteUnder(location, "/geographies") || !seenRouteUnder(location, "/geography-types") {
 		t.Error("Location Management is missing Geographies or Geography Types")
 	}
-	if !seenRouteUnder(childNamed(t, rootsByName["Settings"], "Attractions Management"), "/attractions") {
+	attractions := childNamed(t, rootsByName["Settings"], "Attractions Management")
+	if !seenRouteUnder(attractions, "/attractions") {
 		t.Error("Attractions Management is missing Attractions")
+	}
+	if seenRouteUnder(attractions, "/tour-operators") {
+		t.Error("Tour Operators still sits under Attractions Management")
+	}
+	operators := childNamed(t, rootsByName["Settings"], "Tour Operator Management")
+	if !seenRouteUnder(operators, "/tour-operators") {
+		t.Error("Tour Operator Management is missing Tour Operators")
 	}
 	admin := rootsByName["Security & Administration"]
 	for _, route := range []string{"/users", "/roles", "/authorities", "/menus"} {
