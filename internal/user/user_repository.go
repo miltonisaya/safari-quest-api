@@ -1,6 +1,8 @@
 package user
 
 import (
+	"strings"
+
 	"safari-quest-api/database"
 	"safari-quest-api/internal/role"
 	"safari-quest-api/pkg/pagination"
@@ -118,7 +120,8 @@ func FindByUUID(uuid uuid.UUID) (User, error) {
 
 func FindByEmail(email string) (User, error) {
 	var user User
-	result := database.GORM_DB.Preload("Roles.Authorities").Where("email = ?", email).First(&user)
+	// Case-insensitive: sign-up stores emails in lowercase, older rows may not be.
+	result := database.GORM_DB.Preload("Roles.Authorities").Where("LOWER(email) = LOWER(?)", strings.TrimSpace(email)).First(&user)
 	return user, result.Error
 }
 
