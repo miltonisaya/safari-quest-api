@@ -71,6 +71,13 @@ func FindByUUID(uuid uuid.UUID) (Attraction, error) {
 	return attraction, result.Error
 }
 
+// FindByUUIDs loads the attractions with the given UUIDs (no relations).
+func FindByUUIDs(uuids []uuid.UUID) ([]Attraction, error) {
+	var attractions []Attraction
+	result := database.GORM_DB.Where("uuid IN ?", uuids).Find(&attractions)
+	return attractions, result.Error
+}
+
 // Insert creates the attraction and links its tour operators in one transaction.
 func Insert(attraction *Attraction, operators []touroperator.TourOperator) error {
 	return database.GORM_DB.Transaction(func(tx *gorm.DB) error {
