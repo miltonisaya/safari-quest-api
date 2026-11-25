@@ -17,6 +17,9 @@ import (
 // the staff of any tour operator.
 const AdministratorRoleCode = "ADMINISTRATOR"
 
+// OperatorRoleCode is the role given to tour company staff.
+const OperatorRoleCode = "TOUR_OPERATOR"
+
 var (
 	// ErrForbidden is returned when the requester is neither staff of the
 	// operator nor a platform administrator.
