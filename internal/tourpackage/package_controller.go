@@ -173,7 +173,8 @@ func fail(c *gin.Context, err error, fallback string) {
 		response.Fail(c, http.StatusNotFound, "Package not found", nil)
 	case errors.Is(err, ErrOutsideCompany), errors.Is(err, companyscope.ErrNoCompany):
 		response.Fail(c, http.StatusForbidden, ErrOutsideCompany.Error(), nil)
-	case errors.Is(err, ErrInvalidReference), errors.Is(err, ErrInvalidPackage), errors.Is(err, ErrAttachment):
+	case errors.Is(err, ErrInvalidReference), errors.Is(err, ErrInvalidPackage), errors.Is(err, ErrAttachment),
+		errors.Is(err, ErrInvalidItinerary), errors.Is(err, ErrInvalidDetails):
 		response.Fail(c, http.StatusBadRequest, err.Error(), nil)
 	case errors.Is(err, errUnauthenticated):
 		response.Fail(c, http.StatusUnauthorized, "Unauthorized", nil)
