@@ -141,6 +141,50 @@ definitions:
       user:
         $ref: '#/definitions/user.Response'
     type: object
+  auth.RegisterInput:
+    properties:
+      accept_terms:
+        type: boolean
+      account_type:
+        type: string
+      company_name:
+        description: 'Operators only:'
+        maxLength: 255
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      full_name:
+        maxLength: 200
+        type: string
+      password:
+        description: bcrypt reads at most 72 bytes
+        maxLength: 72
+        type: string
+      phone:
+        maxLength: 30
+        type: string
+    required:
+    - account_type
+    - email
+    - full_name
+    - password
+    type: object
+  auth.RegisterResponse:
+    properties:
+      account_type:
+        type: string
+      authorities:
+        items:
+          $ref: '#/definitions/authority.ListResponse'
+        type: array
+      company_pending_review:
+        type: boolean
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/user.Response'
+    type: object
   authority.ListResponse:
     properties:
       code:
@@ -148,6 +192,306 @@ definitions:
       created_at:
         type: string
       name:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  booking.BookableDetail:
+    properties:
+      attractions:
+        items:
+          $ref: '#/definitions/tourpackage.Ref'
+        type: array
+      bookable:
+        description: false once started or full
+        type: boolean
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      difficulty:
+        type: string
+      eco_certified:
+        type: boolean
+      end_date:
+        type: string
+      exclusions:
+        items:
+          type: string
+        type: array
+      file_resources:
+        items:
+          $ref: '#/definitions/tourpackage.FileRef'
+        type: array
+      highlights:
+        items:
+          type: string
+        type: array
+      inclusions:
+        items:
+          type: string
+        type: array
+      itinerary:
+        items:
+          $ref: '#/definitions/tourpackage.DayResponse'
+        type: array
+      location:
+        type: string
+      meeting_point:
+        type: string
+      name:
+        type: string
+      operator:
+        $ref: '#/definitions/tourpackage.Ref'
+      package_type:
+        type: string
+      pax:
+        type: integer
+      price:
+        type: number
+      price_per_person:
+        type: number
+      rating:
+        $ref: '#/definitions/tourpackage.RatingResponse'
+      seats_left:
+        type: integer
+      start_date:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  booking.BookableResponse:
+    properties:
+      description:
+        type: string
+      difficulty:
+        type: string
+      end_date:
+        type: string
+      name:
+        type: string
+      package_type:
+        type: string
+      pax:
+        type: integer
+      price_per_person:
+        type: number
+      rating:
+        $ref: '#/definitions/tourpackage.RatingResponse'
+      seats_left:
+        type: integer
+      start_date:
+        type: string
+      tour_operator:
+        $ref: '#/definitions/booking.Ref'
+      uuid:
+        type: string
+    type: object
+  booking.PackageRef:
+    properties:
+      end_date:
+        type: string
+      name:
+        type: string
+      package_type:
+        type: string
+      start_date:
+        type: string
+      uuid:
+        type: string
+    type: object
+  booking.Ref:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  booking.Response:
+    properties:
+      cancelled_at:
+        type: string
+      code:
+        type: string
+      confirmed_at:
+        type: string
+      created_at:
+        type: string
+      notes:
+        type: string
+      package:
+        $ref: '#/definitions/booking.PackageRef'
+      pax:
+        type: integer
+      status:
+        $ref: '#/definitions/booking.Status'
+      total_price:
+        type: number
+      tour_operator:
+        $ref: '#/definitions/booking.Ref'
+      traveler:
+        $ref: '#/definitions/booking.TravelerRef'
+      unit_price:
+        type: number
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  booking.StaffInput:
+    properties:
+      notes:
+        type: string
+      package_uuid:
+        type: string
+      pax:
+        minimum: 1
+        type: integer
+      status:
+        allOf:
+        - $ref: '#/definitions/booking.Status'
+        description: pending (default) or confirmed
+      traveler_uuid:
+        type: string
+    required:
+    - package_uuid
+    - pax
+    - traveler_uuid
+    type: object
+  booking.Status:
+    enum:
+    - pending
+    - confirmed
+    - completed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - StatusPending
+    - StatusConfirmed
+    - StatusCompleted
+    - StatusCancelled
+  booking.TravelerInput:
+    properties:
+      notes:
+        type: string
+      package_uuid:
+        type: string
+      pax:
+        minimum: 1
+        type: integer
+    required:
+    - package_uuid
+    - pax
+    type: object
+  booking.TravelerRef:
+    properties:
+      email:
+        type: string
+      mobile:
+        type: string
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  booking.UpdateInput:
+    properties:
+      notes:
+        type: string
+      pax:
+        minimum: 1
+        type: integer
+      status:
+        $ref: '#/definitions/booking.Status'
+    required:
+    - pax
+    - status
+    type: object
+  catalog.List:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/catalog.Package'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  catalog.Package:
+    properties:
+      attractions:
+        items:
+          $ref: '#/definitions/tourpackage.Ref'
+        type: array
+      bookable:
+        description: not started and seats left
+        type: boolean
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      difficulty:
+        type: string
+      duration_days:
+        type: integer
+      eco_certified:
+        type: boolean
+      end_date:
+        type: string
+      exclusions:
+        items:
+          type: string
+        type: array
+      file_resources:
+        items:
+          $ref: '#/definitions/tourpackage.FileRef'
+        type: array
+      highlights:
+        items:
+          type: string
+        type: array
+      image_path:
+        description: |-
+          ImagePath is the first image attachment, relative to the API root
+          (e.g. "uploads/abc.png", served at /api/v1/uploads/abc.png); empty when
+          the package has no image.
+        type: string
+      inclusions:
+        items:
+          type: string
+        type: array
+      itinerary:
+        items:
+          $ref: '#/definitions/tourpackage.DayResponse'
+        type: array
+      location:
+        type: string
+      meeting_point:
+        type: string
+      name:
+        type: string
+      operator:
+        $ref: '#/definitions/tourpackage.Ref'
+      package_type:
+        type: string
+      pax:
+        type: integer
+      price:
+        type: number
+      rating:
+        $ref: '#/definitions/tourpackage.RatingResponse'
+      seats_left:
+        type: integer
+      start_date:
         type: string
       updated_at:
         type: string
@@ -404,6 +748,24 @@ definitions:
       meta:
         $ref: '#/definitions/pagination.Meta'
     type: object
+  pagination.Result-booking_BookableResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/booking.BookableResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  pagination.Result-booking_Response:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/booking.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
   pagination.Result-fileresourcetype_Response:
     properties:
       items:
@@ -436,6 +798,15 @@ definitions:
       items:
         items:
           $ref: '#/definitions/menu.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+    type: object
+  pagination.Result-review_Response:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/review.Response'
         type: array
       meta:
         $ref: '#/definitions/pagination.Meta'
@@ -487,6 +858,105 @@ definitions:
     - StatusSuccess
     - StatusFail
     - StatusError
+  review.Input:
+    properties:
+      booking_uuid:
+        type: string
+      comment:
+        maxLength: 4000
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      title:
+        maxLength: 150
+        type: string
+    required:
+    - booking_uuid
+    - rating
+    type: object
+  review.ModerationInput:
+    properties:
+      hidden:
+        type: boolean
+    type: object
+  review.PackageList:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/review.Response'
+        type: array
+      meta:
+        $ref: '#/definitions/pagination.Meta'
+      summary:
+        $ref: '#/definitions/review.Summary'
+    type: object
+  review.PackageRef:
+    properties:
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  review.ReplyInput:
+    properties:
+      reply:
+        maxLength: 4000
+        type: string
+    type: object
+  review.Response:
+    properties:
+      booking_uuid:
+        type: string
+      comment:
+        type: string
+      created_at:
+        type: string
+      is_hidden:
+        type: boolean
+      operator_reply:
+        type: string
+      package:
+        $ref: '#/definitions/review.PackageRef'
+      rating:
+        type: integer
+      replied_at:
+        type: string
+      reviewer:
+        description: first name and last initial
+        type: string
+      title:
+        type: string
+      trip_date:
+        type: string
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  review.Summary:
+    properties:
+      average:
+        type: number
+      count:
+        type: integer
+    type: object
+  review.UpdateInput:
+    properties:
+      comment:
+        maxLength: 4000
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      title:
+        maxLength: 150
+        type: string
+    required:
+    - rating
+    type: object
   role.AuthoritiesInput:
     properties:
       authority_uuids:
@@ -598,6 +1068,41 @@ definitions:
       website:
         type: string
     type: object
+  tourpackage.DayInput:
+    properties:
+      accommodation:
+        type: string
+      attraction_uuid:
+        type: string
+      description:
+        type: string
+      meals:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    required:
+    - description
+    - title
+    type: object
+  tourpackage.DayResponse:
+    properties:
+      accommodation:
+        type: string
+      attraction:
+        $ref: '#/definitions/tourpackage.Ref'
+      day:
+        type: integer
+      description:
+        type: string
+      meals:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    type: object
   tourpackage.FileRef:
     properties:
       code:
@@ -613,14 +1118,45 @@ definitions:
     type: object
   tourpackage.Input:
     properties:
+      attraction_uuids:
+        items:
+          type: string
+        type: array
+      currency:
+        description: ISO 4217; USD when empty
+        type: string
       description:
         type: string
+      difficulty:
+        type: string
+      eco_certified:
+        type: boolean
       end_date:
         type: string
+      exclusions:
+        items:
+          type: string
+        type: array
       file_resource_uuids:
         items:
           type: string
         type: array
+      highlights:
+        items:
+          type: string
+        type: array
+      inclusions:
+        items:
+          type: string
+        type: array
+      itinerary:
+        items:
+          $ref: '#/definitions/tourpackage.DayInput'
+        type: array
+      location:
+        type: string
+      meeting_point:
+        type: string
       name:
         type: string
       operator_uuid:
@@ -657,6 +1193,13 @@ definitions:
           $ref: '#/definitions/tourpackage.Ref'
         type: array
     type: object
+  tourpackage.RatingResponse:
+    properties:
+      average:
+        type: number
+      count:
+        type: integer
+    type: object
   tourpackage.Ref:
     properties:
       code:
@@ -668,16 +1211,46 @@ definitions:
     type: object
   tourpackage.Response:
     properties:
+      attractions:
+        items:
+          $ref: '#/definitions/tourpackage.Ref'
+        type: array
       created_at:
+        type: string
+      currency:
         type: string
       description:
         type: string
+      difficulty:
+        type: string
+      eco_certified:
+        type: boolean
       end_date:
         type: string
+      exclusions:
+        items:
+          type: string
+        type: array
       file_resources:
         items:
           $ref: '#/definitions/tourpackage.FileRef'
         type: array
+      highlights:
+        items:
+          type: string
+        type: array
+      inclusions:
+        items:
+          type: string
+        type: array
+      itinerary:
+        items:
+          $ref: '#/definitions/tourpackage.DayResponse'
+        type: array
+      location:
+        type: string
+      meeting_point:
+        type: string
       name:
         type: string
       operator:
@@ -688,6 +1261,8 @@ definitions:
         type: integer
       price:
         type: number
+      rating:
+        $ref: '#/definitions/tourpackage.RatingResponse'
       start_date:
         type: string
       updated_at:
@@ -1454,6 +2029,47 @@ paths:
       summary: Login
       tags:
       - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Sign up as a traveler, or as a tour operator with a new company
+        (unverified until an administrator verifies it; its packages stay off the
+        public site until then). Signs the new account in.
+      parameters:
+      - description: Account details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.RegisterResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      summary: Create an account
+      tags:
+      - Auth
   /authorities:
     get:
       description: Return all authorities
@@ -1480,6 +2096,464 @@ paths:
       summary: List authorities
       tags:
       - Authorities
+  /bookable-packages:
+    get:
+      description: Packages that have not started and still have seats, soonest first
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by name, description or type
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-booking_BookableResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List bookable packages
+      tags:
+      - My Bookings
+  /bookable-packages/{uuid}:
+    get:
+      description: Full package information, itinerary, rating and seats left; bookable
+        is false once it has started or is full
+      parameters:
+      - description: Package UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.BookableDetail'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Package details for travelers
+      tags:
+      - My Bookings
+  /bookings:
+    get:
+      description: Bookings for the caller's companies (all companies for administrators)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search by booking code, package or traveler
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: 'Sort column: code, pax, total_price, status, created_at, updated_at'
+        in: query
+        name: sort_by
+        type: string
+      - default: asc
+        description: 'Sort direction: asc or desc'
+        in: query
+        name: sort_dir
+        type: string
+      - description: pending, confirmed, completed or cancelled
+        in: query
+        name: status
+        type: string
+      - description: Only bookings on this package
+        in: query
+        name: package_uuid
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-booking_Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List bookings
+      tags:
+      - Bookings
+    post:
+      consumes:
+      - application/json
+      description: Book a traveler onto one of the caller's packages. Total = price
+        per person × pax; the package's group size cannot be exceeded.
+      parameters:
+      - description: Booking data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/booking.StaffInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Record booking
+      tags:
+      - Bookings
+  /bookings/{uuid}:
+    delete:
+      description: Soft-delete a booking record. To release seats normally, cancel
+        it instead.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete booking
+      tags:
+      - Bookings
+    get:
+      description: A single booking in one of the caller's companies
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get booking
+      tags:
+      - Bookings
+    put:
+      consumes:
+      - application/json
+      description: 'Change guests, notes or status. Allowed status changes: pending
+        → confirmed or cancelled; confirmed → completed or cancelled.'
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Booking changes
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/booking.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update booking
+      tags:
+      - Bookings
+  /catalog/packages:
+    get:
+      description: Upcoming packages for the website, with rating, photo and seats
+        left. No sign-in required.
+      parameters:
+      - description: Package type, e.g. Safari, Beach, Cultural
+        in: query
+        name: category
+        type: string
+      - description: Only eco-certified packages
+        in: query
+        name: eco
+        type: boolean
+      - description: Highest price per person
+        in: query
+        name: max_price
+        type: number
+      - description: Name, description, location or type
+        in: query
+        name: search
+        type: string
+      - description: soonest (default), price-asc, price-desc or newest
+        in: query
+        name: sort
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 100
+        description: Items per page (max 100)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/catalog.List'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      summary: Public package catalog
+      tags:
+      - Catalog
+  /catalog/packages/{uuid}:
+    get:
+      description: Everything the website shows about one package. No sign-in required.
+      parameters:
+      - description: Package UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/catalog.Package'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      summary: Public package detail
+      tags:
+      - Catalog
+  /catalog/packages/{uuid}/reviews:
+    get:
+      description: Visible reviews of a package with its rating summary. No sign-in
+        required.
+      parameters:
+      - description: Package UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/review.PackageList'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      summary: Public package reviews
+      tags:
+      - Catalog
   /file-resource-types:
     get:
       description: Return a paginated list of file resource types
@@ -2379,6 +3453,351 @@ paths:
       summary: Update menu
       tags:
       - Menus
+  /my-bookings:
+    get:
+      description: The signed-in traveler's own bookings
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: pending, confirmed, completed or cancelled
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-booking_Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List my bookings
+      tags:
+      - My Bookings
+    post:
+      consumes:
+      - application/json
+      description: Book seats for yourself. The booking starts as pending until the
+        company confirms it.
+      parameters:
+      - description: Package and guests
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/booking.TravelerInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Book a package
+      tags:
+      - My Bookings
+  /my-bookings/{uuid}:
+    delete:
+      description: Cancel one of your own pending or confirmed bookings. The record
+        is kept with status cancelled and its seats are released.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel my booking
+      tags:
+      - My Bookings
+  /my-reviews:
+    get:
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-review_Response'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: List my reviews
+      tags:
+      - My Reviews
+    post:
+      consumes:
+      - application/json
+      description: Review one of your own completed bookings (once per booking)
+      parameters:
+      - description: Review
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/review.Input'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/review.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Review a trip
+      tags:
+      - My Reviews
+  /my-reviews/{uuid}:
+    delete:
+      parameters:
+      - description: Review UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete my review
+      tags:
+      - My Reviews
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Review UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Review changes
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/review.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/review.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Edit my review
+      tags:
+      - My Reviews
+  /package-reviews:
+    get:
+      description: Visible reviews of one package with its average rating and count
+      parameters:
+      - description: Package UUID
+        in: query
+        name: package_uuid
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: rating, created_at or updated_at (newest first when omitted)
+        in: query
+        name: sort_by
+        type: string
+      - description: asc or desc
+        in: query
+        name: sort_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/review.PackageList'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Reviews of a package
+      tags:
+      - Reviews
   /packages:
     get:
       description: Trips for sale. A tour company sees only its own packages.
@@ -2502,6 +3921,156 @@ paths:
       summary: Update package
       tags:
       - Packages
+  /review-moderation/{uuid}:
+    put:
+      consumes:
+      - application/json
+      description: Administrators hide abusive reviews; hidden reviews stay stored
+        but leave public lists and ratings
+      parameters:
+      - description: Review UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Visibility
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/review.ModerationInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/review.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Hide or show a review
+      tags:
+      - Reviews
+  /review-replies/{uuid}:
+    put:
+      consumes:
+      - application/json
+      description: Set or clear (empty reply) the company's public answer to a review
+        of its package
+      parameters:
+      - description: Review UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Reply
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/review.ReplyInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/review.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Reply to a review
+      tags:
+      - Reviews
+  /reviews:
+    get:
+      description: Company staff see their own packages' reviews, hidden ones included;
+        administrators see all
+      parameters:
+      - description: Only this package
+        in: query
+        name: package_uuid
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 15
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search title or comment
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/pagination.Result-review_Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Reviews of my company's packages
+      tags:
+      - Reviews
   /roles:
     get:
       description: Return a paginated, searchable, and sortable list of roles
@@ -3135,6 +4704,38 @@ paths:
       summary: Remove tour operator user
       tags:
       - Tour Operators
+  /travelers:
+    get:
+      description: Active accounts holding the Traveler role, for recording a booking
+        on their behalf (max 20)
+      parameters:
+      - description: Name or email
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/booking.TravelerRef'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Search travelers
+      tags:
+      - Bookings
   /users:
     get:
       description: Return a paginated, searchable, and sortable list of users
