@@ -89,6 +89,7 @@ func TestAppMenuTree(t *testing.T) {
 		"/users", "/roles", "/authorities", "/menus",
 		"/geographies", "/geography-types",
 		"/attractions", "/attraction-types", "/attraction-categories", "/tour-operators",
+		"/bookings", "/my-bookings",
 		"/packages", "/file-resources", "/file-resource-types",
 	} {
 		if !seenRoute[route] {
