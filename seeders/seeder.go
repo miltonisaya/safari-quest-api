@@ -26,6 +26,7 @@ func SyncAuthorities(router *gin.Engine) {
 	authorities := seedAuthorities(router)
 	seedAdminRole(authorities)
 	grantTourOperatorUserAccess()
+	ensureTravelerRole()
 	SeedMenus()
 	ensureFeatureMenus()
 	log.Println("[seeder] authority sync done")
@@ -55,7 +56,8 @@ func seedAuthorities(router *gin.Engine) []authority.Authority {
 	seeded := make([]authority.Authority, 0)
 
 	for _, route := range router.Routes() {
-		if strings.Contains(route.Path, "/uploads/") {
+		// Public routes have no Authorize() check, so they need no authority.
+		if strings.Contains(route.Path, "/uploads/") || strings.Contains(route.Path, "/catalog/") {
 			continue
 		}
 		code := authoritycode.DeriveCode(route.Method, route.Path)
@@ -113,7 +115,15 @@ func seedAdminRole(authorities []authority.Authority) role.Role {
 // stay in the user, package, and file services.
 func grantTourOperatorUserAccess() {
 	var opRole role.Role
-	if err := database.GORM_DB.Where("code = ?", "TOUR_OPERATOR").First(&opRole).Error; err != nil {
+	err := database.GORM_DB.Where("code = ?", "TOUR_OPERATOR").First(&opRole).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// Operator sign-up needs this role to exist.
+		opRole = role.Role{Name: "Tour Operator", Code: "TOUR_OPERATOR"}
+		if err := database.GORM_DB.Create(&opRole).Error; err != nil {
+			log.Printf("[seeder] could not create Tour Operator role: %v\n", err)
+			return
+		}
+	} else if err != nil {
 		return
 	}
 	codes := []string{
@@ -121,6 +131,10 @@ func grantTourOperatorUserAccess() {
 		"package_get", "package_post", "package_put", "package_delete",
 		"file-resource_get", "file-resource_post", "file-resource_put", "file-resource_delete",
 		"file-resource-type_get",
+		// Bookings on their own packages; cancelling replaces deleting.
+		"booking_get", "booking_post", "booking_put", "traveler_get",
+		// Read and answer reviews of their own packages; hiding stays with administrators.
+		"review_get", "review-reply_put", "package-review_get", "attraction_get",
 	}
 	var wanted []authority.Authority
 	if err := database.GORM_DB.Where("code IN ?", codes).Find(&wanted).Error; err != nil {
