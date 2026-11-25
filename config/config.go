@@ -13,6 +13,7 @@ type config struct {
 	GinMode              string
 	JWTSecret            string
 	Seed                 bool
+	SeedDemo             bool
 	AdminEmail           string
 	AdminDefaultPassword string
 	SwaggerHost          string
@@ -33,6 +34,7 @@ func Load() {
 		GinMode:              getEnv("GIN_MODE", "debug"),
 		JWTSecret:            getEnv("JWT_SECRET", ""),
 		Seed:                 getEnv("SEED", "false") == "true",
+		SeedDemo:             getEnv("SEED_DEMO", "false") == "true",
 		AdminEmail:           getEnv("ADMIN_EMAIL", ""),
 		AdminDefaultPassword: getEnv("ADMIN_DEFAULT_PASSWORD", ""),
 		SwaggerHost:          getEnv("SWAGGER_HOST", "localhost:"+port),
