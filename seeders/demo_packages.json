@@ -1,0 +1,479 @@
+[
+  {
+    "name": "Serengeti Great Migration Safari",
+    "location": "Serengeti, Tanzania",
+    "description": "Witness the greatest wildlife spectacle on Earth — the annual migration of over 1.5 million wildebeest across the Serengeti plains. This immersive 7-day experience puts you at the heart of nature's most dramatic event.",
+    "days": 7,
+    "price": 3200,
+    "currency": "USD",
+    "eco_certified": true,
+    "package_type": "Safari",
+    "pax": 8,
+    "difficulty": "easy",
+    "highlights": [
+      "Witness the Great Migration river crossings",
+      "Expert naturalist guides",
+      "Exclusive private conservancy access",
+      "Hot air balloon safari at sunrise"
+    ],
+    "inclusions": [
+      "All park fees",
+      "Luxury tented camp accommodation",
+      "All meals",
+      "Airport transfers",
+      "Game drives in 4x4 vehicles"
+    ],
+    "exclusions": [
+      "International flights",
+      "Travel insurance",
+      "Personal expenses",
+      "Gratuities"
+    ],
+    "itinerary": [
+      {
+        "title": "Arrival in Arusha",
+        "description": "Welcome briefing and overnight in Arusha before your adventure begins.",
+        "accommodation": "Arusha Coffee Lodge",
+        "meals": [
+          "dinner"
+        ]
+      },
+      {
+        "title": "Drive to Serengeti",
+        "description": "Travel through the Ngorongoro highlands to the vast Serengeti plains.",
+        "accommodation": "Serengeti Pioneer Camp",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Full Day Game Drive",
+        "description": "Track the migration herds with your expert guide.",
+        "accommodation": "Serengeti Pioneer Camp",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Balloon Safari",
+        "description": "Dawn hot air balloon over the plains, champagne breakfast on landing.",
+        "accommodation": "Serengeti Pioneer Camp",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "River Crossing Viewpoint",
+        "description": "Position yourself at the Mara River for the dramatic wildebeest crossing.",
+        "accommodation": "Serengeti Pioneer Camp",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Ndutu Region Exploration",
+        "description": "Explore the woodlands and plains of the southern Serengeti.",
+        "accommodation": "Ndutu Safari Lodge",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Departure",
+        "description": "Final breakfast before transfer to Kilimanjaro International Airport.",
+        "accommodation": null,
+        "meals": [
+          "breakfast"
+        ]
+      }
+    ],
+    "starts_in_days": 30,
+    "operator": "Savanna Explorers Ltd"
+  },
+  {
+    "name": "Kilimanjaro Lemosho Route Climb",
+    "location": "Kilimanjaro, Tanzania",
+    "description": "Conquer Africa's highest peak via the scenic Lemosho Route. 8 days of breathtaking landscapes, from rainforest to alpine desert and ultimately to Uhuru Peak at 5,895m.",
+    "days": 8,
+    "price": 2800,
+    "currency": "USD",
+    "eco_certified": true,
+    "package_type": "Mountain Climbing",
+    "pax": 12,
+    "difficulty": "challenging",
+    "highlights": [
+      "Summit Uhuru Peak (5,895m)",
+      "High success rate route",
+      "Professional mountain guides",
+      "Small group experience"
+    ],
+    "inclusions": [
+      "All park fees",
+      "Mountain tents & sleeping equipment",
+      "All meals on mountain",
+      "Porters & guides",
+      "Emergency oxygen"
+    ],
+    "exclusions": [
+      "Flights",
+      "Travel insurance",
+      "Personal gear",
+      "Gratuities",
+      "Hotel before/after"
+    ],
+    "itinerary": [
+      {
+        "title": "Londorossi Gate to Mti Mkubwa",
+        "description": "Enter the forest zone and camp at Big Tree Camp.",
+        "accommodation": "Mti Mkubwa Camp (2,650m)",
+        "meals": [
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Mti Mkubwa to Shira 1",
+        "description": "Ascend through moorland to the Shira Plateau.",
+        "accommodation": "Shira 1 Camp (3,500m)",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Shira 1 to Shira 2",
+        "description": "Acclimatization hike through the plateau.",
+        "accommodation": "Shira 2 Camp (3,900m)",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Shira 2 to Barranco via Lava Tower",
+        "description": "Climb to Lava Tower for acclimatization then descend.",
+        "accommodation": "Barranco Camp (3,900m)",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Barranco to Karanga",
+        "description": "Climb the Barranco Wall and hike through scenic valleys.",
+        "accommodation": "Karanga Camp (4,100m)",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Karanga to Barafu",
+        "description": "Final acclimatization rest before summit night.",
+        "accommodation": "Barafu Base Camp (4,640m)",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Summit Night & Descent",
+        "description": "Midnight summit attempt reaching Uhuru Peak at dawn. Descend to Mweka Camp.",
+        "accommodation": "Mweka Camp (3,100m)",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Descent to Gate & Departure",
+        "description": "Final descent through rainforest, certificates presented at gate.",
+        "accommodation": null,
+        "meals": [
+          "breakfast",
+          "lunch"
+        ]
+      }
+    ],
+    "starts_in_days": 42,
+    "operator": "Summit Africa Adventures"
+  },
+  {
+    "name": "Zanzibar Blue Safari & Beach",
+    "location": "Zanzibar, Tanzania",
+    "description": "Combine marine wildlife encounters with the idyllic beaches of Zanzibar. Swim with whale sharks, explore vibrant coral reefs, and unwind on pristine white sand beaches.",
+    "days": 5,
+    "price": 1850,
+    "currency": "USD",
+    "eco_certified": true,
+    "package_type": "Beach",
+    "pax": 10,
+    "difficulty": "easy",
+    "highlights": [
+      "Whale shark snorkeling",
+      "Pristine coral reef diving",
+      "Stone Town UNESCO tour",
+      "Sunset dhow cruise"
+    ],
+    "inclusions": [
+      "Airport transfers",
+      "Boutique hotel",
+      "All snorkeling gear",
+      "Guided marine excursions",
+      "Daily breakfast"
+    ],
+    "exclusions": [
+      "Flights",
+      "SCUBA diving certification courses",
+      "Alcohol",
+      "Personal expenses"
+    ],
+    "itinerary": [
+      {
+        "title": "Arrival & Stone Town",
+        "description": "Arrive in Zanzibar and explore the historic Stone Town.",
+        "accommodation": "Zanzibar Serena Hotel",
+        "meals": [
+          "dinner"
+        ]
+      },
+      {
+        "title": "Whale Shark Encounter",
+        "description": "Full-day excursion to swim with gentle whale sharks.",
+        "accommodation": "Zanzibar Serena Hotel",
+        "meals": [
+          "breakfast",
+          "lunch"
+        ]
+      },
+      {
+        "title": "Coral Reef Snorkeling",
+        "description": "Explore the vibrant Mnemba Atoll coral reef.",
+        "accommodation": "Zanzibar Serena Hotel",
+        "meals": [
+          "breakfast",
+          "lunch"
+        ]
+      },
+      {
+        "title": "Spice Tour & Beach",
+        "description": "Morning spice plantation tour, afternoon beach relaxation.",
+        "accommodation": "Zanzibar Serena Hotel",
+        "meals": [
+          "breakfast"
+        ]
+      },
+      {
+        "title": "Departure",
+        "description": "Final morning on the beach before airport transfer.",
+        "accommodation": null,
+        "meals": [
+          "breakfast"
+        ]
+      }
+    ],
+    "starts_in_days": 54,
+    "operator": "Blue Ocean Safaris"
+  },
+  {
+    "name": "Ngorongoro Crater Cultural Safari",
+    "location": "Ngorongoro, Tanzania",
+    "description": "Descend into the world's largest intact volcanic caldera and experience the unique Maasai culture. This 4-day immersive cultural and wildlife experience combines the ancient with the wild.",
+    "days": 4,
+    "price": 1650,
+    "currency": "USD",
+    "eco_certified": true,
+    "package_type": "Cultural",
+    "pax": 6,
+    "difficulty": "easy",
+    "highlights": [
+      "Full day crater game drive",
+      "Big Five sighting probability",
+      "Maasai village cultural visit",
+      "Walking safari with Maasai warriors"
+    ],
+    "inclusions": [
+      "All park & conservation fees",
+      "Lodge accommodation",
+      "Full board meals",
+      "Crater game drive",
+      "Maasai cultural experience"
+    ],
+    "exclusions": [
+      "Flights",
+      "Travel insurance",
+      "Personal shopping",
+      "Gratuities"
+    ],
+    "itinerary": [
+      {
+        "title": "Arusha to Ngorongoro",
+        "description": "Drive through the highlands to the crater rim lodge.",
+        "accommodation": "Ngorongoro Crater Lodge",
+        "meals": [
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Full Day Crater Drive",
+        "description": "Descend 600m into the caldera for an epic game viewing day.",
+        "accommodation": "Ngorongoro Crater Lodge",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Maasai Cultural Immersion",
+        "description": "Walk with Maasai warriors, visit boma village, learn traditions.",
+        "accommodation": "Ngorongoro Crater Lodge",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Olduvai Gorge & Departure",
+        "description": "Visit the \"Cradle of Mankind\" before returning to Arusha.",
+        "accommodation": null,
+        "meals": [
+          "breakfast",
+          "lunch"
+        ]
+      }
+    ],
+    "starts_in_days": 66,
+    "operator": "Ubuntu Cultural Safaris"
+  },
+  {
+    "name": "Tarangire Elephant Encounter",
+    "location": "Tarangire, Tanzania",
+    "description": "Tarangire is Africa's best-kept secret for elephant sightings. This 3-day safari puts you in the middle of one of the largest elephant populations on the continent amid iconic baobab trees.",
+    "days": 3,
+    "price": 1200,
+    "currency": "USD",
+    "eco_certified": false,
+    "package_type": "Safari",
+    "pax": 8,
+    "difficulty": "easy",
+    "highlights": [
+      "Massive elephant herds",
+      "Ancient baobab landscapes",
+      "Diverse bird life (550+ species)",
+      "Walking safari option"
+    ],
+    "inclusions": [
+      "Park fees",
+      "Tented camp",
+      "All meals",
+      "Game drives",
+      "Airport transfers"
+    ],
+    "exclusions": [
+      "Flights",
+      "Drinks",
+      "Personal expenses",
+      "Gratuities"
+    ],
+    "itinerary": [
+      {
+        "title": "Arrival at Tarangire",
+        "description": "Afternoon game drive on arrival, first elephant encounters.",
+        "accommodation": "Tarangire Treetops Lodge",
+        "meals": [
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Full Day in the Park",
+        "description": "Dawn to dusk game drive with picnic lunch in the bush.",
+        "accommodation": "Tarangire Treetops Lodge",
+        "meals": [
+          "breakfast",
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Morning Drive & Departure",
+        "description": "Final sunrise game drive before returning to Arusha.",
+        "accommodation": null,
+        "meals": [
+          "breakfast",
+          "lunch"
+        ]
+      }
+    ],
+    "starts_in_days": 78,
+    "operator": "Baobab Safari Co."
+  },
+  {
+    "name": "Lake Manyara Flamingo Tour",
+    "location": "Lake Manyara, Tanzania",
+    "description": "Watch thousands of pink flamingos paint Lake Manyara's shores while tree-climbing lions lounge overhead. A 2-day escape into one of Tanzania's most magical ecosystems.",
+    "days": 2,
+    "price": 790,
+    "currency": "USD",
+    "eco_certified": true,
+    "package_type": "Eco-Tour",
+    "pax": 10,
+    "difficulty": "easy",
+    "highlights": [
+      "Pink flamingo flocks",
+      "Tree-climbing lions",
+      "Diverse bird life",
+      "Scenic lake shoreline"
+    ],
+    "inclusions": [
+      "Park fees",
+      "Lodge",
+      "All meals",
+      "Game drive"
+    ],
+    "exclusions": [
+      "Flights",
+      "Personal expenses"
+    ],
+    "itinerary": [
+      {
+        "title": "Manyara Arrival & Afternoon Drive",
+        "description": "Enter the park and drive along the lakeshore.",
+        "accommodation": "Lake Manyara Hotel",
+        "meals": [
+          "lunch",
+          "dinner"
+        ]
+      },
+      {
+        "title": "Morning Drive & Departure",
+        "description": "Sunrise flamingo viewing before returning.",
+        "accommodation": null,
+        "meals": [
+          "breakfast"
+        ]
+      }
+    ],
+    "starts_in_days": 90,
+    "operator": "Flamingo Eco-Tours"
+  }
+]
