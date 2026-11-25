@@ -37,6 +37,8 @@ func appMenuTree() []menuSeed {
 	return []menuSeed{
 		{Name: "Dashboard", Type: menu.TypeLink, Route: "/dashboard", Icon: "dashboard", Authority: shell, SortOrder: 10},
 		{Name: "Messages", Type: menu.TypeLink, Route: "/messages", Icon: "forum", Authority: shell, SortOrder: 20},
+		link("Bookings", "/bookings", "event_available", "/bookings", 25),
+		link("My Bookings", "/my-bookings", "luggage", "/my-bookings", 30),
 		group("Settings", "settings", "/geographies", 40,
 			group("Location Management", "location_on", "/geographies", 10,
 				link("Geographies", "/geographies", "map", "/geographies", 10),
@@ -120,6 +122,19 @@ func ensureFeatureMenus() {
 	ensureLink(packagesParent, "File Resources", "/file-resources", "attach_file", "/file-resources", 60)
 	ensureLink(menuIDByChildRoute("/users"), "File Resource Types", "/file-resource-types", "folder_open", "/file-resource-types", 50)
 	ensureTourOperatorMenu()
+	ensureBookingMenus()
+}
+
+// ensureBookingMenus adds the top-level Bookings (company staff) and
+// My Bookings (travelers) links to databases seeded before bookings existed.
+// The sidebar shows each only to accounts holding its authority.
+// shortcut: like the other feature menus, a deleted link returns on the next boot.
+func ensureBookingMenus() {
+	for _, item := range appMenuTree() {
+		if item.Route == "/bookings" || item.Route == "/my-bookings" {
+			ensureMenu(item, nil)
+		}
+	}
 }
 
 // ensureTourOperatorMenu puts Tour Operators under its own group. A database
