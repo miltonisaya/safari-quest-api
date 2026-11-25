@@ -54,18 +54,30 @@ internal/role/
 └── role_routes.go       # RegisterRoutes(rg) — the feature's paths
 ```
 
-Features: `auth` (no model/repository), `authority`, `role`, `user`, `menu`, `geographytype` (files prefixed `geography_type_`), `geography`, `attractiontype`, `attractioncategory`, `touroperator` (files prefixed `tour_operator_`), `attraction`. The `/ws` controller and route live in `websocket/`.
+Features: `auth` (no model/repository), `authority`, `role`, `user`, `menu`, `geographytype` (files prefixed `geography_type_`), `geography`, `attractiontype`, `attractioncategory`, `touroperator` (files prefixed `tour_operator_`), `attraction`, `booking`, `review`, `catalog` (public, no model/repository). The `/ws` controller and route live in `websocket/`.
 
 Naming inside a package (the layers share one namespace, so names must not collide):
 - Service: `GetAll`, `GetByUUID`, `Create`, `Update`, `Delete`; DTOs `Input`, `Response`; `ToResponse` when another feature needs the conversion
 - Repository: `FindAll`, `FindByUUID`, `FindByUUIDs`, `Insert`, `Save`, `Remove`
 - Controller type: `Controller`
 
-Dependencies point one way only: `user → role → authority`, `menu → authority`, `geography → geographytype`, `auth → user`, `touroperator → user, geography`, `attraction → attractiontype, attractioncategory, geography, touroperator`. Go forbids import cycles, so never add a back-reference field (e.g. `Authority.Roles`) or a call from a lower feature into a higher one. Feature routes must not import `middlewares` (that would cycle through `user` → `websocket`); `api/v1/routes.go` passes in an already-protected group instead.
+Dependencies point one way only: `user → role → authority`, `menu → authority`, `geography → geographytype`, `auth → user`, `touroperator → user, geography`, `attraction → attractiontype, attractioncategory, geography, touroperator`, `tourpackage → attraction, touroperator, fileresource`, `booking → tourpackage, touroperator, user, companyscope`, `review → booking, tourpackage, user, companyscope`, `catalog → tourpackage, booking, review`. Go forbids import cycles, so never add a back-reference field (e.g. `Authority.Roles`) or a call from a lower feature into a higher one. Feature routes must not import `middlewares` (that would cycle through `user` → `websocket`); `api/v1/routes.go` passes in an already-protected group instead.
 
 Authority codes are derived from the last non-parameter path segment (`pkg/authority`), so a nested route like `/tour-operators/:uuid/staff` gets `staff_*` codes. Never nest a route under a segment that already names another resource (e.g. `/users`), or its permission would also grant that resource's global endpoints.
 
 Tour operator staff live in the `tour_operator_users` pivot. The `/tour-operators/:uuid/staff` endpoints additionally require the caller to be staff of that operator or hold the `ADMINISTRATOR` role, and staff may only grant roles they hold themselves.
+
+Bookings (`internal/booking`): a traveler's seats on a sale package; total = package price per person × pax. Pending and confirmed bookings together may not exceed the package's pax; the check runs in a transaction that locks the package row. Status moves pending → confirmed | cancelled, confirmed → completed | cancelled; completed and cancelled are final. Company staff use `/bookings` and `/travelers` (`booking_*`, `traveler_get`, scoped by `companyscope`); travelers use `/bookable-packages` and `/my-bookings` (`bookable-package_get`, `my-booking_*`), where `DELETE /my-bookings/:uuid` cancels rather than deletes. The seeder keeps a `TRAVELER` role holding only those traveler codes plus `menu_get`.
+
+Packages (`internal/tourpackage`) carry traveler-facing details: `highlights`, `inclusions` and `exclusions` are `pkg/dbtypes.StringList` (JSONB arrays), plus `difficulty` (easy/moderate/challenging), `meeting_point`, linked attractions (`package_attractions`) and an itinerary (`package_itinerary_days`). Saving a package replaces its attractions and itinerary as a whole; days are numbered in the order sent and may not outnumber the trip's days. `price` is per person. Responses include `rating` (average and count of visible reviews).
+
+Reviews (`internal/review`, table `package_reviews`): one per completed booking, written by its traveler (`/my-reviews`, `my-review_*`). Anyone signed in reads a package's visible reviews at `/package-reviews` (`package-review_get`). Company staff list their packages' reviews at `/reviews` (`review_get`) and post one public reply at `/review-replies/:uuid` (`review-reply_put`). Only administrators hold `review-moderation_put` to hide a review; hidden reviews stay stored but leave public lists and ratings. Public reviews show the reviewer as first name and last initial.
+
+Sign-up (`POST /auth/register`, public): travelers get the TRAVELER role; operators also get a new tour company (`is_verified = false`, unique name, generated code) linked through `tour_operator_users` and the TOUR_OPERATOR role, all in one transaction. The response signs the account in like login. Passwords need 8+ characters with a letter and a digit; emails are stored lowercase and matched case-insensitively at login. Packages of unverified or inactive companies are hidden from `/catalog` and traveler booking (`tourpackage.PublishedOperator` / `Published`) until an administrator verifies the company; staff screens are unaffected.
+
+Public catalog (`internal/catalog`): `GET /catalog/packages`, `/catalog/packages/:uuid` and `/catalog/packages/:uuid/reviews` need no sign-in and feed the public website. The list shows only packages that have not started (filters: `category`, `eco`, `max_price`, `search`, `sort`); detail also returns started packages with `bookable: false`. Responses add `image_path` (first image attachment), `duration_days` and `seats_left`, and never include attachment metadata. The seeder skips `/catalog/` paths, so they create no authority codes. Packages also carry `location`, `currency` (ISO 4217, default USD) and `eco_certified`; `package_type` is the website category (Safari, Mountain Climbing, Beach, Cultural, Eco-Tour).
+
+`SEED_DEMO=true` loads the website's sample tour companies and packages (`seeders/demo_packages.json`) as real records starting 30+ days out; companies use `DEMO_*` codes and existing rows are skipped.
 
 When adding a feature: create `internal/<feature>/` with the files above, call its `RegisterRoutes` from `api/v1/routes.go`, and let Air (or `swag init`) regenerate `docs/`.
 
