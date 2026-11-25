@@ -54,6 +54,12 @@ func Login(input LoginInput) (LoginResponse, error) {
 		return LoginResponse{}, ErrAccountInactive
 	}
 
+	return issueSession(account)
+}
+
+// issueSession signs a 24-hour JWT for the account and lists the authority
+// codes its roles grant. Roles must be loaded with their authorities.
+func issueSession(account user.User) (LoginResponse, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": account.UUID.String(),
 		"iat": time.Now().Unix(),
