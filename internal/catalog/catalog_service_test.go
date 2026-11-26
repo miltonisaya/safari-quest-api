@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"safari-quest-api/internal/booking"
 	"testing"
 	"time"
 
@@ -30,15 +31,19 @@ func TestImagePathPicksFirstImage(t *testing.T) {
 
 func TestToPublicSeatsAndBookable(t *testing.T) {
 	future := time.Now().AddDate(0, 0, 10)
-	p := toPublic(pkg(future, 7, 8), tourpackage.Rating{}, 3)
+	p := toPublic(pkg(future, 7, 8), tourpackage.Rating{}, booking.Availability{SeatsLeft: 5, MaxSharedTravellers: 5})
 	if p.SeatsLeft != 5 || !p.Bookable || p.DurationDays != 7 {
 		t.Fatalf("future package: seats %d bookable %v days %d", p.SeatsLeft, p.Bookable, p.DurationDays)
 	}
-	full := toPublic(pkg(future, 2, 4), tourpackage.Rating{}, 6)
-	if full.SeatsLeft != 0 || full.Bookable {
-		t.Fatalf("overbooked package should show 0 seats and not be bookable: %+v", full)
+	private := toPublic(pkg(future, 2, 4), tourpackage.Rating{}, booking.Availability{PrivateGroupsLeft: 1})
+	if !private.Bookable {
+		t.Fatal("a private group left keeps the package bookable")
 	}
-	past := toPublic(pkg(time.Now().AddDate(0, 0, -3), 5, 4), tourpackage.Rating{}, 0)
+	full := toPublic(pkg(future, 2, 4), tourpackage.Rating{}, booking.Availability{})
+	if full.SeatsLeft != 0 || full.Bookable {
+		t.Fatalf("a full package should not be bookable: %+v", full)
+	}
+	past := toPublic(pkg(time.Now().AddDate(0, 0, -3), 5, 4), tourpackage.Rating{}, booking.Availability{SeatsLeft: 4})
 	if past.Bookable {
 		t.Fatal("a package that already started must not be bookable")
 	}
@@ -47,7 +52,7 @@ func TestToPublicSeatsAndBookable(t *testing.T) {
 func TestUnverifiedCompanyIsNotBookable(t *testing.T) {
 	p := pkg(time.Now().AddDate(0, 0, 10), 3, 4)
 	p.Operator.IsVerified = false
-	if toPublic(p, tourpackage.Rating{}, 0).Bookable {
+	if toPublic(p, tourpackage.Rating{}, booking.Availability{SeatsLeft: 4}).Bookable {
 		t.Fatal("a package from an unverified company must not be bookable")
 	}
 }
