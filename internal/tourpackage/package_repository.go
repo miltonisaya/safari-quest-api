@@ -200,3 +200,16 @@ func FindCatalog(f CatalogFilters, limit, offset int) ([]Package, int64, error) 
 	err := withRelations(db).Order(order).Limit(limit).Offset(offset).Find(&items).Error
 	return items, total, err
 }
+
+// activeGroupUse sums pending and confirmed bookings per group of a package.
+func activeGroupUse(packageID uint) ([]groupUse, error) {
+	var rows []groupUse
+	err := database.GORM_DB.Raw(`
+		SELECT unit_number, SUM(pax) AS pax,
+		       BOOL_OR(booking_type = 'private') AS private,
+		       BOOL_OR(booking_type = 'shared')  AS shared
+		FROM bookings
+		WHERE package_id = ? AND status IN ('pending', 'confirmed') AND deleted_at IS NULL
+		GROUP BY unit_number`, packageID).Scan(&rows).Error
+	return rows, err
+}
