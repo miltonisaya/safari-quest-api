@@ -74,7 +74,7 @@ func (controller Controller) Register(c *gin.Context) {
 		case errors.Is(err, ErrSignupDisabled):
 			response.Fail(c, http.StatusServiceUnavailable, err.Error(), nil)
 		case errors.Is(err, ErrWeakPassword), errors.Is(err, ErrTermsRequired), errors.Is(err, ErrCompanyRequired),
-			errors.Is(err, ErrInvalidName), errors.Is(err, ErrInvalidAccountTy):
+			errors.Is(err, ErrInvalidName), errors.Is(err, ErrInvalidAccountTy), errors.Is(err, ErrInvalidSex):
 			response.Fail(c, http.StatusBadRequest, err.Error(), nil)
 		default:
 			response.Error(c, http.StatusInternalServerError, "Could not create your account")
