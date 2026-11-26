@@ -18,6 +18,14 @@ type config struct {
 	AdminDefaultPassword string
 	SwaggerHost          string
 	UploadDir            string
+	// AppURL is the website address used in emailed links (password reset).
+	AppURL string
+	// SMTP settings; when SMTPHost is empty, emails are written to the log instead.
+	SMTPHost     string
+	SMTPPort     string
+	SMTPUsername string
+	SMTPPassword string
+	MailFrom     string
 }
 
 var App config
@@ -39,6 +47,12 @@ func Load() {
 		AdminDefaultPassword: getEnv("ADMIN_DEFAULT_PASSWORD", ""),
 		SwaggerHost:          getEnv("SWAGGER_HOST", "localhost:"+port),
 		UploadDir:            getEnv("UPLOAD_DIR", "uploads"),
+		AppURL:               getEnv("APP_URL", "http://localhost:4200"),
+		SMTPHost:             getEnv("SMTP_HOST", ""),
+		SMTPPort:             getEnv("SMTP_PORT", "587"),
+		SMTPUsername:         getEnv("SMTP_USERNAME", ""),
+		SMTPPassword:         getEnv("SMTP_PASSWORD", ""),
+		MailFrom:             getEnv("MAIL_FROM", "SafariQuest <no-reply@safariquest.com>"),
 	}
 }
 
