@@ -56,8 +56,9 @@ func seedAuthorities(router *gin.Engine) []authority.Authority {
 	seeded := make([]authority.Authority, 0)
 
 	for _, route := range router.Routes() {
-		// Public routes have no Authorize() check, so they need no authority.
-		if strings.Contains(route.Path, "/uploads/") || strings.Contains(route.Path, "/catalog/") {
+		// Public and sign-in-only routes have no Authorize() check, so they need no authority.
+		if strings.Contains(route.Path, "/uploads/") || strings.Contains(route.Path, "/catalog/") ||
+			strings.Contains(route.Path, "/auth/") || strings.HasSuffix(route.Path, "/me") || strings.Contains(route.Path, "/me/") {
 			continue
 		}
 		code := authoritycode.DeriveCode(route.Method, route.Path)
