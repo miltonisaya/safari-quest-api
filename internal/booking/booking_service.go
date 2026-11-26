@@ -263,7 +263,7 @@ func GetByUUID(id uuid.UUID, scope companyscope.Scope) (Response, error) {
 	if err != nil {
 		return Response{}, err
 	}
-	if !scope.Allows(b.TourOperatorID) {
+	if !scope.Allows(b.Package.OperatorID) {
 		return Response{}, ErrOutsideCompany
 	}
 	return ToResponse(b), nil
@@ -295,7 +295,7 @@ func Update(id uuid.UUID, input UpdateInput, scope companyscope.Scope) (Response
 	if err != nil {
 		return Response{}, err
 	}
-	if !scope.Allows(b.TourOperatorID) {
+	if !scope.Allows(b.Package.OperatorID) {
 		return Response{}, ErrOutsideCompany
 	}
 	if !b.Status.HoldsSeats() {
@@ -329,7 +329,7 @@ func Delete(id uuid.UUID, scope companyscope.Scope) error {
 	if err != nil {
 		return err
 	}
-	if !scope.Allows(b.TourOperatorID) {
+	if !scope.Allows(b.Package.OperatorID) {
 		return ErrOutsideCompany
 	}
 	if err := Remove(id); err != nil {
