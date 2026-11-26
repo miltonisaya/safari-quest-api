@@ -94,14 +94,33 @@ func CodeExists(code string) (bool, error) {
 	return count > 0, err
 }
 
-// seatsHeld sums the guests of bookings that still hold seats on the package,
+// groupRow is one group's active bookings, as read from the database.
+type groupRow struct {
+	PackageID  uint
+	UnitNumber int
+	Pax        int
+	Private    bool
+}
+
+// activeGroups sums pending and confirmed bookings per package and group,
 // leaving out excludeID (the booking being edited).
-func seatsHeld(tx *gorm.DB, packageID, excludeID uint) (int, error) {
-	var held int
+func activeGroups(tx *gorm.DB, packageIDs []uint, excludeID uint) ([]groupRow, error) {
+	var rows []groupRow
 	err := tx.Model(&Booking{}).
-		Where("package_id = ? AND id <> ? AND status IN ?", packageID, excludeID, []Status{StatusPending, StatusConfirmed}).
-		Select("COALESCE(SUM(pax), 0)").Scan(&held).Error
-	return held, err
+		Select("package_id, unit_number, COALESCE(SUM(pax), 0) AS pax, BOOL_OR(booking_type = ?) AS private", TypePrivate).
+		Where("package_id IN ? AND id <> ? AND status IN ?", packageIDs, excludeID, []Status{StatusPending, StatusConfirmed}).
+		Group("package_id, unit_number").Scan(&rows).Error
+	return rows, err
+}
+
+func usageOf(rows []groupRow, packageID uint) usage {
+	u := usage{}
+	for _, r := range rows {
+		if r.PackageID == packageID {
+			u[r.UnitNumber] = groupUse{Held: r.Pax, Private: r.Private}
+		}
+	}
+	return u
 }
 
 // saveChecked writes the booking inside a transaction that locks the package
@@ -114,11 +133,19 @@ func saveChecked(b *Booking, create bool) error {
 			return err
 		}
 		if b.Status.HoldsSeats() {
-			held, err := seatsHeld(tx, pkg.ID, b.ID)
+			rows, err := activeGroups(tx, []uint{pkg.ID}, b.ID)
 			if err != nil {
 				return err
 			}
-			if held+b.Pax > pkg.Pax {
+			others := usageOf(rows, pkg.ID)
+			if create {
+				// The group is chosen here, under the lock, so two bookings can't take the same seats.
+				n, err := assignGroup(pkg, b.BookingType, b.Pax, others)
+				if err != nil {
+					return err
+				}
+				b.UnitNumber = n
+			} else if !fitsGroup(pkg, b.BookingType, b.UnitNumber, b.Pax, others) {
 				return ErrNotEnoughSeats
 			}
 		}
@@ -138,24 +165,29 @@ func Remove(id uuid.UUID) error {
 	return database.GORM_DB.Where("uuid = ?", id).Delete(&Booking{}).Error
 }
 
-// BookablePackage is a package that has not started and still has seats.
+// BookablePackage is a package that has not started and still has room.
 type BookablePackage struct {
 	tourpackage.Package
-	SeatsLeft int
+	Availability Availability
 }
 
 // FindBookable lists packages starting today or later with seats left.
 func FindBookable(params pagination.Params) ([]BookablePackage, int64, error) {
-	held := database.GORM_DB.Model(&Booking{}).
-		Select("package_id, SUM(pax) AS pax").
+	// Seats used per package; a private group counts as full.
+	groups := database.GORM_DB.Model(&Booking{}).
+		Select("package_id, unit_number, SUM(pax) AS pax, BOOL_OR(booking_type = ?) AS private", TypePrivate).
 		Where("status IN ?", []Status{StatusPending, StatusConfirmed}).
-		Group("package_id")
+		Group("package_id, unit_number")
+	used := database.GORM_DB.Table("(?) AS g", groups).
+		Joins("JOIN packages p ON p.id = g.package_id").
+		Select("g.package_id, SUM(CASE WHEN g.private THEN p.pax ELSE g.pax END) AS seats").
+		Group("g.package_id")
 
 	db := database.GORM_DB.Model(&tourpackage.Package{}).
-		Joins("LEFT JOIN (?) AS held ON held.package_id = packages.id", held).
+		Joins("LEFT JOIN (?) AS used ON used.package_id = packages.id", used).
 		Where("packages.start_date >= ?", time.Now().Format("2006-01-02")).
 		Where(tourpackage.PublishedOperator).
-		Where("packages.pax - COALESCE(held.pax, 0) > 0")
+		Where("packages.units * packages.pax - COALESCE(used.seats, 0) > 0")
 	if params.Search != "" {
 		term := "%" + params.Search + "%"
 		db = db.Where("packages.name ILIKE ? OR packages.description ILIKE ? OR packages.package_type ILIKE ?", term, term, term)
@@ -173,13 +205,13 @@ func FindBookable(params pagination.Params) ([]BookablePackage, int64, error) {
 		return nil, 0, err
 	}
 
+	available, err := AvailabilityFor(packages)
+	if err != nil {
+		return nil, 0, err
+	}
 	items := make([]BookablePackage, len(packages))
 	for i, p := range packages {
-		taken, err := seatsHeld(database.GORM_DB, p.ID, 0)
-		if err != nil {
-			return nil, 0, err
-		}
-		items[i] = BookablePackage{Package: p, SeatsLeft: p.Pax - taken}
+		items[i] = BookablePackage{Package: p, Availability: available[p.ID]}
 	}
 	return items, total, nil
 }
@@ -199,22 +231,22 @@ func FindTravelers(search string, limit int) ([]user.User, error) {
 	return travelers, err
 }
 
-// SeatsHeldFor sums pending and confirmed guests per package.
-func SeatsHeldFor(packageIDs []uint) (map[uint]int, error) {
-	out := make(map[uint]int, len(packageIDs))
-	if len(packageIDs) == 0 {
+// AvailabilityFor works out what is still on sale for each package.
+func AvailabilityFor(packages []tourpackage.Package) (map[uint]Availability, error) {
+	out := make(map[uint]Availability, len(packages))
+	if len(packages) == 0 {
 		return out, nil
 	}
-	var rows []struct {
-		PackageID uint
-		Pax       int
+	ids := make([]uint, len(packages))
+	for i, p := range packages {
+		ids[i] = p.ID
 	}
-	err := database.GORM_DB.Model(&Booking{}).
-		Select("package_id, COALESCE(SUM(pax), 0) AS pax").
-		Where("package_id IN ? AND status IN ?", packageIDs, []Status{StatusPending, StatusConfirmed}).
-		Group("package_id").Scan(&rows).Error
-	for _, r := range rows {
-		out[r.PackageID] = r.Pax
+	rows, err := activeGroups(database.GORM_DB, ids, 0)
+	if err != nil {
+		return nil, err
 	}
-	return out, err
+	for _, p := range packages {
+		out[p.ID] = availabilityOf(p, usageOf(rows, p.ID))
+	}
+	return out, nil
 }
