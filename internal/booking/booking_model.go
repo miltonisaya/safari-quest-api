@@ -30,7 +30,7 @@ type Booking struct {
 	Code           string                    `gorm:"uniqueIndex;not null" json:"-"`
 	PackageID      uint                      `gorm:"not null" json:"-"`
 	Package        tourpackage.Package       `gorm:"foreignKey:PackageID" json:"-"`
-	TourOperatorID uint                      `gorm:"not null" json:"-"` // copied from the package for company scoping
+	TourOperatorID uint                      `gorm:"not null" json:"-"` // company when booked; access follows the package's current company
 	TourOperator   touroperator.TourOperator `gorm:"foreignKey:TourOperatorID" json:"-"`
 	UserID         uint                      `gorm:"not null" json:"-"`
 	User           user.User                 `gorm:"foreignKey:UserID" json:"-"`
