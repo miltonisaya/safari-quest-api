@@ -35,15 +35,21 @@ type Booking struct {
 	UserID         uint                      `gorm:"not null" json:"-"`
 	User           user.User                 `gorm:"foreignKey:UserID" json:"-"`
 	Pax            int                       `gorm:"not null" json:"-"`
-	UnitPrice      float64                   `gorm:"type:numeric(12,2);not null" json:"-"`
-	TotalPrice     float64                   `gorm:"type:numeric(12,2);not null" json:"-"`
-	Status         Status                    `gorm:"type:varchar(20);not null;default:pending" json:"-"`
-	Notes          *string                   `gorm:"type:text" json:"-"`
-	ConfirmedAt    *time.Time                `json:"-"`
-	CancelledAt    *time.Time                `json:"-"`
-	CreatedAt      time.Time                 `json:"-"`
-	UpdatedAt      time.Time                 `json:"-"`
-	DeletedAt      gorm.DeletedAt            `gorm:"index" json:"-"`
+	BookingType    string                    `gorm:"type:varchar(10);not null;default:shared" json:"-"` // shared or private
+	UnitNumber     int                       `gorm:"not null;default:1" json:"-"`                       // which group (1…package units)
+	// Pricing copied from the package when booked (see Quote).
+	Pricing           string         `gorm:"type:varchar(12);not null;default:per_person" json:"-"`
+	MinTravellers     int            `gorm:"not null;default:1" json:"-"`
+	ChargedTravellers int            `gorm:"not null;default:1" json:"-"`
+	UnitPrice         float64        `gorm:"type:numeric(12,2);not null" json:"-"`
+	TotalPrice        float64        `gorm:"type:numeric(12,2);not null" json:"-"`
+	Status            Status         `gorm:"type:varchar(20);not null;default:pending" json:"-"`
+	Notes             *string        `gorm:"type:text" json:"-"`
+	ConfirmedAt       *time.Time     `json:"-"`
+	CancelledAt       *time.Time     `json:"-"`
+	CreatedAt         time.Time      `json:"-"`
+	UpdatedAt         time.Time      `json:"-"`
+	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 func (b *Booking) BeforeCreate(tx *gorm.DB) error {
