@@ -33,6 +33,7 @@ type Package struct {
 	Location      *string                     `json:"-"` // e.g. "Serengeti, Tanzania"
 	Currency      string                      `gorm:"type:char(3);not null;default:USD" json:"-"`
 	EcoCertified  bool                        `gorm:"not null;default:false" json:"-"`
+	Selling       Selling                     `gorm:"embedded" json:"-"` // groups, booking mode and pricing; Pax is seats per group
 	Attractions   []attraction.Attraction     `gorm:"many2many:package_attractions;" json:"-"`
 	Itinerary     []ItineraryDay              `gorm:"foreignKey:PackageID" json:"-"`
 	FileResources []fileresource.FileResource `gorm:"many2many:package_file_resources;" json:"-"`
