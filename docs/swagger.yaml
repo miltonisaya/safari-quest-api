@@ -1,4 +1,62 @@
 definitions:
+  account.ForgotInput:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+    required:
+    - email
+    type: object
+  account.PasswordInput:
+    properties:
+      current_password:
+        maxLength: 72
+        type: string
+      new_password:
+        maxLength: 72
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  account.ProfileInput:
+    properties:
+      address:
+        maxLength: 255
+        type: string
+      first_name:
+        maxLength: 100
+        type: string
+      last_name:
+        maxLength: 100
+        type: string
+      middle_name:
+        maxLength: 100
+        type: string
+      mobile:
+        maxLength: 30
+        type: string
+      sex:
+        description: Male or Female, checked in UpdateProfile for a clear message
+        maxLength: 10
+        type: string
+    required:
+    - first_name
+    - last_name
+    type: object
+  account.ResetInput:
+    properties:
+      password:
+        description: bcrypt reads at most 72 bytes
+        maxLength: 72
+        type: string
+      token:
+        maxLength: 200
+        type: string
+    required:
+    - password
+    - token
+    type: object
   attraction.Input:
     properties:
       attraction_category_uuid:
@@ -163,6 +221,10 @@ definitions:
         type: string
       phone:
         maxLength: 30
+        type: string
+      sex:
+        description: Male or Female, checked in Register for a clear message
+        maxLength: 10
         type: string
     required:
     - account_type
@@ -1990,6 +2052,33 @@ paths:
       summary: Update attraction
       tags:
       - Attractions
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Emails a one-hour reset link if the address belongs to an active
+        account. Always answers the same way, so it does not reveal who has an account.
+      parameters:
+      - description: Account email
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/account.ForgotInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      summary: Request a password reset link
+      tags:
+      - Account
   /auth/login:
     post:
       consumes:
@@ -2070,6 +2159,31 @@ paths:
       summary: Create an account
       tags:
       - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Token from the emailed link and the new password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/account.ResetInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      summary: Set a new password from a reset link
+      tags:
+      - Account
   /authorities:
     get:
       description: Return all authorities
@@ -3253,6 +3367,97 @@ paths:
       summary: Update geography type
       tags:
       - Geography Types
+  /me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/user.Response'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get my profile
+      tags:
+      - Account
+    put:
+      consumes:
+      - application/json
+      description: Changes your own name, sex, mobile and address. Email, roles and
+        status are managed by administrators.
+      parameters:
+      - description: Profile
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/account.ProfileInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/user.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Update my profile
+      tags:
+      - Account
+  /me/password:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Current and new password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/account.PasswordInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Change my password
+      tags:
+      - Account
   /menus:
     get:
       description: Return a paginated, searchable, and sortable list of menus
