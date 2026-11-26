@@ -6540,8 +6540,11 @@ const docTemplate = `{
                     }
                 },
                 "bookable": {
-                    "description": "false once started or full",
+                    "description": "false once started, full or not published",
                     "type": "boolean"
+                },
+                "booking_mode": {
+                    "type": "string"
                 },
                 "created_at": {
                     "type": "string"
@@ -6594,6 +6597,13 @@ const docTemplate = `{
                 "location": {
                     "type": "string"
                 },
+                "max_private_units": {
+                    "type": "integer"
+                },
+                "max_shared_travellers": {
+                    "description": "most travellers one shared booking can bring (one group)",
+                    "type": "integer"
+                },
                 "meeting_point": {
                     "type": "string"
                 },
@@ -6615,14 +6625,36 @@ const docTemplate = `{
                 "price_per_person": {
                     "type": "number"
                 },
+                "private_groups_left": {
+                    "type": "integer"
+                },
+                "private_min_travellers": {
+                    "type": "integer"
+                },
+                "private_price": {
+                    "type": "number"
+                },
+                "private_pricing": {
+                    "type": "string"
+                },
                 "rating": {
                     "$ref": "#/definitions/tourpackage.RatingResponse"
                 },
                 "seats_left": {
+                    "description": "shared seats across all groups",
                     "type": "integer"
+                },
+                "shared_min_travellers": {
+                    "type": "integer"
+                },
+                "shared_pricing": {
+                    "type": "string"
                 },
                 "start_date": {
                     "type": "string"
+                },
+                "units": {
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
@@ -6635,6 +6667,9 @@ const docTemplate = `{
         "booking.BookableResponse": {
             "type": "object",
             "properties": {
+                "booking_mode": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -6643,6 +6678,13 @@ const docTemplate = `{
                 },
                 "end_date": {
                     "type": "string"
+                },
+                "max_private_units": {
+                    "type": "integer"
+                },
+                "max_shared_travellers": {
+                    "description": "most travellers one shared booking can bring (one group)",
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
@@ -6656,17 +6698,39 @@ const docTemplate = `{
                 "price_per_person": {
                     "type": "number"
                 },
+                "private_groups_left": {
+                    "type": "integer"
+                },
+                "private_min_travellers": {
+                    "type": "integer"
+                },
+                "private_price": {
+                    "type": "number"
+                },
+                "private_pricing": {
+                    "type": "string"
+                },
                 "rating": {
                     "$ref": "#/definitions/tourpackage.RatingResponse"
                 },
                 "seats_left": {
+                    "description": "shared seats across all groups",
                     "type": "integer"
+                },
+                "shared_min_travellers": {
+                    "type": "integer"
+                },
+                "shared_pricing": {
+                    "type": "string"
                 },
                 "start_date": {
                     "type": "string"
                 },
                 "tour_operator": {
                     "$ref": "#/definitions/booking.Ref"
+                },
+                "units": {
+                    "type": "integer"
                 },
                 "uuid": {
                     "type": "string"
@@ -6710,8 +6774,14 @@ const docTemplate = `{
         "booking.Response": {
             "type": "object",
             "properties": {
+                "booking_type": {
+                    "type": "string"
+                },
                 "cancelled_at": {
                     "type": "string"
+                },
+                "charged_travellers": {
+                    "type": "integer"
                 },
                 "code": {
                     "type": "string"
@@ -6722,6 +6792,12 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "group": {
+                    "type": "integer"
+                },
+                "min_travellers": {
+                    "type": "integer"
+                },
                 "notes": {
                     "type": "string"
                 },
@@ -6730,6 +6806,9 @@ const docTemplate = `{
                 },
                 "pax": {
                     "type": "integer"
+                },
+                "pricing": {
+                    "type": "string"
                 },
                 "status": {
                     "$ref": "#/definitions/booking.Status"
@@ -6762,6 +6841,10 @@ const docTemplate = `{
                 "traveler_uuid"
             ],
             "properties": {
+                "booking_type": {
+                    "description": "shared (default) or private",
+                    "type": "string"
+                },
                 "notes": {
                     "type": "string"
                 },
@@ -6807,6 +6890,10 @@ const docTemplate = `{
                 "pax"
             ],
             "properties": {
+                "booking_type": {
+                    "description": "shared (default) or private",
+                    "type": "string"
+                },
                 "notes": {
                     "type": "string"
                 },
@@ -6879,8 +6966,11 @@ const docTemplate = `{
                     }
                 },
                 "bookable": {
-                    "description": "not started and seats left",
+                    "description": "not started and something left to book",
                     "type": "boolean"
+                },
+                "booking_mode": {
+                    "type": "string"
                 },
                 "created_at": {
                     "type": "string"
@@ -6940,6 +7030,13 @@ const docTemplate = `{
                 "location": {
                     "type": "string"
                 },
+                "max_private_units": {
+                    "type": "integer"
+                },
+                "max_shared_travellers": {
+                    "description": "most travellers one shared booking can bring (one group)",
+                    "type": "integer"
+                },
                 "meeting_point": {
                     "type": "string"
                 },
@@ -6958,14 +7055,36 @@ const docTemplate = `{
                 "price": {
                     "type": "number"
                 },
+                "private_groups_left": {
+                    "type": "integer"
+                },
+                "private_min_travellers": {
+                    "type": "integer"
+                },
+                "private_price": {
+                    "type": "number"
+                },
+                "private_pricing": {
+                    "type": "string"
+                },
                 "rating": {
                     "$ref": "#/definitions/tourpackage.RatingResponse"
                 },
                 "seats_left": {
+                    "description": "shared seats across all groups",
                     "type": "integer"
+                },
+                "shared_min_travellers": {
+                    "type": "integer"
+                },
+                "shared_pricing": {
+                    "type": "string"
                 },
                 "start_date": {
                     "type": "string"
+                },
+                "units": {
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
@@ -7927,6 +8046,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "booking_mode": {
+                    "type": "string"
+                },
                 "currency": {
                     "description": "ISO 4217; USD when empty",
                     "type": "string"
@@ -7976,6 +8098,9 @@ const docTemplate = `{
                 "location": {
                     "type": "string"
                 },
+                "max_private_units": {
+                    "type": "integer"
+                },
                 "meeting_point": {
                     "type": "string"
                 },
@@ -7996,8 +8121,26 @@ const docTemplate = `{
                     "type": "number",
                     "minimum": 0
                 },
+                "private_min_travellers": {
+                    "type": "integer"
+                },
+                "private_price": {
+                    "type": "number"
+                },
+                "private_pricing": {
+                    "type": "string"
+                },
+                "shared_min_travellers": {
+                    "type": "integer"
+                },
+                "shared_pricing": {
+                    "type": "string"
+                },
                 "start_date": {
                     "type": "string"
+                },
+                "units": {
+                    "type": "integer"
                 }
             }
         },
@@ -8055,6 +8198,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/tourpackage.Ref"
                     }
                 },
+                "booking_mode": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -8106,6 +8252,9 @@ const docTemplate = `{
                 "location": {
                     "type": "string"
                 },
+                "max_private_units": {
+                    "type": "integer"
+                },
                 "meeting_point": {
                     "type": "string"
                 },
@@ -8124,11 +8273,29 @@ const docTemplate = `{
                 "price": {
                     "type": "number"
                 },
+                "private_min_travellers": {
+                    "type": "integer"
+                },
+                "private_price": {
+                    "type": "number"
+                },
+                "private_pricing": {
+                    "type": "string"
+                },
                 "rating": {
                     "$ref": "#/definitions/tourpackage.RatingResponse"
                 },
+                "shared_min_travellers": {
+                    "type": "integer"
+                },
+                "shared_pricing": {
+                    "type": "string"
+                },
                 "start_date": {
                     "type": "string"
+                },
+                "units": {
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
