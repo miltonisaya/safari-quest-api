@@ -267,8 +267,10 @@ definitions:
           $ref: '#/definitions/tourpackage.Ref'
         type: array
       bookable:
-        description: false once started or full
+        description: false once started, full or not published
         type: boolean
+      booking_mode:
+        type: string
       created_at:
         type: string
       currency:
@@ -303,6 +305,11 @@ definitions:
         type: array
       location:
         type: string
+      max_private_units:
+        type: integer
+      max_shared_travellers:
+        description: most travellers one shared booking can bring (one group)
+        type: integer
       meeting_point:
         type: string
       name:
@@ -317,12 +324,27 @@ definitions:
         type: number
       price_per_person:
         type: number
+      private_groups_left:
+        type: integer
+      private_min_travellers:
+        type: integer
+      private_price:
+        type: number
+      private_pricing:
+        type: string
       rating:
         $ref: '#/definitions/tourpackage.RatingResponse'
       seats_left:
+        description: shared seats across all groups
         type: integer
+      shared_min_travellers:
+        type: integer
+      shared_pricing:
+        type: string
       start_date:
         type: string
+      units:
+        type: integer
       updated_at:
         type: string
       uuid:
@@ -330,12 +352,19 @@ definitions:
     type: object
   booking.BookableResponse:
     properties:
+      booking_mode:
+        type: string
       description:
         type: string
       difficulty:
         type: string
       end_date:
         type: string
+      max_private_units:
+        type: integer
+      max_shared_travellers:
+        description: most travellers one shared booking can bring (one group)
+        type: integer
       name:
         type: string
       package_type:
@@ -344,14 +373,29 @@ definitions:
         type: integer
       price_per_person:
         type: number
+      private_groups_left:
+        type: integer
+      private_min_travellers:
+        type: integer
+      private_price:
+        type: number
+      private_pricing:
+        type: string
       rating:
         $ref: '#/definitions/tourpackage.RatingResponse'
       seats_left:
+        description: shared seats across all groups
         type: integer
+      shared_min_travellers:
+        type: integer
+      shared_pricing:
+        type: string
       start_date:
         type: string
       tour_operator:
         $ref: '#/definitions/booking.Ref'
+      units:
+        type: integer
       uuid:
         type: string
     type: object
@@ -379,20 +423,30 @@ definitions:
     type: object
   booking.Response:
     properties:
+      booking_type:
+        type: string
       cancelled_at:
         type: string
+      charged_travellers:
+        type: integer
       code:
         type: string
       confirmed_at:
         type: string
       created_at:
         type: string
+      group:
+        type: integer
+      min_travellers:
+        type: integer
       notes:
         type: string
       package:
         $ref: '#/definitions/booking.PackageRef'
       pax:
         type: integer
+      pricing:
+        type: string
       status:
         $ref: '#/definitions/booking.Status'
       total_price:
@@ -410,6 +464,9 @@ definitions:
     type: object
   booking.StaffInput:
     properties:
+      booking_type:
+        description: shared (default) or private
+        type: string
       notes:
         type: string
       package_uuid:
@@ -442,6 +499,9 @@ definitions:
     - StatusCancelled
   booking.TravelerInput:
     properties:
+      booking_type:
+        description: shared (default) or private
+        type: string
       notes:
         type: string
       package_uuid:
@@ -493,8 +553,10 @@ definitions:
           $ref: '#/definitions/tourpackage.Ref'
         type: array
       bookable:
-        description: not started and seats left
+        description: not started and something left to book
         type: boolean
+      booking_mode:
+        type: string
       created_at:
         type: string
       currency:
@@ -537,6 +599,11 @@ definitions:
         type: array
       location:
         type: string
+      max_private_units:
+        type: integer
+      max_shared_travellers:
+        description: most travellers one shared booking can bring (one group)
+        type: integer
       meeting_point:
         type: string
       name:
@@ -549,12 +616,27 @@ definitions:
         type: integer
       price:
         type: number
+      private_groups_left:
+        type: integer
+      private_min_travellers:
+        type: integer
+      private_price:
+        type: number
+      private_pricing:
+        type: string
       rating:
         $ref: '#/definitions/tourpackage.RatingResponse'
       seats_left:
+        description: shared seats across all groups
         type: integer
+      shared_min_travellers:
+        type: integer
+      shared_pricing:
+        type: string
       start_date:
         type: string
+      units:
+        type: integer
       updated_at:
         type: string
       uuid:
@@ -1184,6 +1266,8 @@ definitions:
         items:
           type: string
         type: array
+      booking_mode:
+        type: string
       currency:
         description: ISO 4217; USD when empty
         type: string
@@ -1217,6 +1301,8 @@ definitions:
         type: array
       location:
         type: string
+      max_private_units:
+        type: integer
       meeting_point:
         type: string
       name:
@@ -1231,8 +1317,20 @@ definitions:
       price:
         minimum: 0
         type: number
+      private_min_travellers:
+        type: integer
+      private_price:
+        type: number
+      private_pricing:
+        type: string
+      shared_min_travellers:
+        type: integer
+      shared_pricing:
+        type: string
       start_date:
         type: string
+      units:
+        type: integer
     required:
     - description
     - end_date
@@ -1277,6 +1375,8 @@ definitions:
         items:
           $ref: '#/definitions/tourpackage.Ref'
         type: array
+      booking_mode:
+        type: string
       created_at:
         type: string
       currency:
@@ -1311,6 +1411,8 @@ definitions:
         type: array
       location:
         type: string
+      max_private_units:
+        type: integer
       meeting_point:
         type: string
       name:
@@ -1323,10 +1425,22 @@ definitions:
         type: integer
       price:
         type: number
+      private_min_travellers:
+        type: integer
+      private_price:
+        type: number
+      private_pricing:
+        type: string
       rating:
         $ref: '#/definitions/tourpackage.RatingResponse'
+      shared_min_travellers:
+        type: integer
+      shared_pricing:
+        type: string
       start_date:
         type: string
+      units:
+        type: integer
       updated_at:
         type: string
       uuid:
