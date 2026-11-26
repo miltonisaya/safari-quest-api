@@ -4,6 +4,7 @@ import (
 	"net/http"
 	attractionType "safari-quest-api/internal/attractiontype"
 
+	"safari-quest-api/internal/account"
 	"safari-quest-api/internal/attraction"
 	"safari-quest-api/internal/attractioncategory"
 	"safari-quest-api/internal/auth"
@@ -34,10 +35,13 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	rg.GET("/health", healthCheck)
 	rg.GET("/uploads/:name", fileresource.Serve)
 	auth.RegisterRoutes(rg)
-	catalog.RegisterRoutes(rg) // public package catalog for the website
+	account.RegisterPublicRoutes(rg) // forgot / reset password
+	catalog.RegisterRoutes(rg)       // public package catalog for the website
 
-	// WebSocket — authenticated, but not behind Authorize().
-	websocket.RegisterRoutes(rg.Group("", middlewares.Auth()))
+	// Signed in, but not behind Authorize(): every account uses these.
+	signedIn := rg.Group("", middlewares.Auth())
+	websocket.RegisterRoutes(signedIn)
+	account.RegisterRoutes(signedIn) // own profile and password
 
 	// Protected routes — Auth() validates the JWT and Authorize() automatically
 	// derives the required authority code from the route pattern and HTTP method,
