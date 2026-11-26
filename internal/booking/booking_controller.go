@@ -397,7 +397,8 @@ func fail(c *gin.Context, err error, fallback string) {
 		response.Fail(c, http.StatusForbidden, ErrOutsideCompany.Error(), nil)
 	case errors.Is(err, ErrNotYours):
 		response.Fail(c, http.StatusForbidden, err.Error(), nil)
-	case errors.Is(err, ErrNotEnoughSeats), errors.Is(err, ErrDeparted), errors.Is(err, ErrFinal), errors.Is(err, ErrUnavailable):
+	case errors.Is(err, ErrNotEnoughSeats), errors.Is(err, ErrDeparted), errors.Is(err, ErrFinal), errors.Is(err, ErrUnavailable),
+		errors.Is(err, ErrTypeNotOffered), errors.Is(err, ErrNoPrivateGroup):
 		response.Fail(c, http.StatusConflict, err.Error(), nil)
 	case errors.Is(err, ErrInvalidReference), errors.Is(err, ErrInvalidStatus), errors.Is(err, ErrInactiveTraveler):
 		response.Fail(c, http.StatusBadRequest, err.Error(), nil)
