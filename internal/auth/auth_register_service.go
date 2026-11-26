@@ -30,6 +30,7 @@ var (
 	ErrSignupDisabled   = errors.New("Sign-up for this account type isn't available yet")
 	ErrInvalidName      = errors.New("Enter your full name")
 	ErrInvalidAccountTy = errors.New("Choose traveler or operator")
+	ErrInvalidSex       = errors.New("Choose Male or Female")
 )
 
 // RegisterInput is what the "Create your account" form sends.
@@ -38,6 +39,7 @@ type RegisterInput struct {
 	Email       string `json:"email" binding:"required,email,max=255"`
 	Password    string `json:"password" binding:"required,max=72"` // bcrypt reads at most 72 bytes
 	AccountType string `json:"account_type" binding:"required"`
+	Sex         string `json:"sex" binding:"max=10"` // Male or Female, checked in Register for a clear message
 	AcceptTerms bool   `json:"accept_terms"`
 	// Operators only:
 	CompanyName string `json:"company_name" binding:"max=255"`
@@ -52,8 +54,8 @@ type RegisterResponse struct {
 	CompanyPendingReview bool   `json:"company_pending_review"`
 }
 
-// strongPassword: 8+ characters with at least one letter and one digit.
-func strongPassword(pw string) bool {
+// StrongPassword reports whether pw has 8+ characters with at least one letter and one digit.
+func StrongPassword(pw string) bool {
 	if len(pw) < 8 {
 		return false
 	}
@@ -109,11 +111,14 @@ func Register(input RegisterInput) (RegisterResponse, error) {
 	if !input.AcceptTerms {
 		return RegisterResponse{}, ErrTermsRequired
 	}
+	if input.Sex != "Male" && input.Sex != "Female" {
+		return RegisterResponse{}, ErrInvalidSex
+	}
 	first, last := splitName(input.FullName)
 	if first == "" {
 		return RegisterResponse{}, ErrInvalidName
 	}
-	if !strongPassword(input.Password) {
+	if !StrongPassword(input.Password) {
 		return RegisterResponse{}, ErrWeakPassword
 	}
 	email := strings.ToLower(strings.TrimSpace(input.Email))
@@ -158,6 +163,7 @@ func Register(input RegisterInput) (RegisterResponse, error) {
 		Email:     email,
 		Password:  string(hashed),
 		Mobile:    phone,
+		Sex:       input.Sex,
 		IsActive:  true,
 	}
 	var operator *touroperator.TourOperator
