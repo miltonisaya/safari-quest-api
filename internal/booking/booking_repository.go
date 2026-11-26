@@ -55,7 +55,8 @@ func FindAll(params pagination.Params, f Filters) ([]Booking, int64, error) {
 		if len(f.OperatorIDs) == 0 {
 			db = db.Where("1 = 0")
 		} else {
-			db = db.Where("bookings.tour_operator_id IN ?", f.OperatorIDs)
+			// By the package's current company, so bookings follow a package moved to another company.
+			db = db.Where("bookings.package_id IN (SELECT id FROM packages WHERE operator_id IN ?)", f.OperatorIDs)
 		}
 	}
 	if f.Status != "" {
