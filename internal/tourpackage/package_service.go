@@ -55,6 +55,7 @@ type Input struct {
 	EcoCertified      bool        `json:"eco_certified"`
 	AttractionUUIDs   []uuid.UUID `json:"attraction_uuids"`
 	Itinerary         []DayInput  `json:"itinerary" binding:"dive"`
+	SellingInput                  // groups, booking mode and pricing (optional; defaults to one shared group per person)
 }
 
 type DayResponse struct {
@@ -86,23 +87,24 @@ type FileRef struct {
 }
 
 type Response struct {
-	UUID          uuid.UUID      `json:"uuid"`
-	Name          string         `json:"name"`
-	Description   string         `json:"description"`
-	Operator      Ref            `json:"operator"`
-	StartDate     string         `json:"start_date"`
-	EndDate       string         `json:"end_date"`
-	Pax           int            `json:"pax"`
-	Price         float64        `json:"price"`
-	PackageType   string         `json:"package_type"`
-	Highlights    []string       `json:"highlights"`
-	Inclusions    []string       `json:"inclusions"`
-	Exclusions    []string       `json:"exclusions"`
-	Difficulty    *string        `json:"difficulty"`
-	MeetingPoint  *string        `json:"meeting_point"`
-	Location      *string        `json:"location"`
-	Currency      string         `json:"currency"`
-	EcoCertified  bool           `json:"eco_certified"`
+	UUID         uuid.UUID `json:"uuid"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	Operator     Ref       `json:"operator"`
+	StartDate    string    `json:"start_date"`
+	EndDate      string    `json:"end_date"`
+	Pax          int       `json:"pax"`
+	Price        float64   `json:"price"`
+	PackageType  string    `json:"package_type"`
+	Highlights   []string  `json:"highlights"`
+	Inclusions   []string  `json:"inclusions"`
+	Exclusions   []string  `json:"exclusions"`
+	Difficulty   *string   `json:"difficulty"`
+	MeetingPoint *string   `json:"meeting_point"`
+	Location     *string   `json:"location"`
+	Currency     string    `json:"currency"`
+	EcoCertified bool      `json:"eco_certified"`
+	SellingResponse
 	Attractions   []Ref          `json:"attractions"`
 	Itinerary     []DayResponse  `json:"itinerary"`
 	Rating        RatingResponse `json:"rating"`
@@ -155,28 +157,29 @@ func ToResponse(item Package) Response {
 		}
 	}
 	return Response{
-		UUID:          item.UUID,
-		Name:          item.Name,
-		Description:   item.Description,
-		Operator:      Ref{UUID: item.Operator.UUID, Name: item.Operator.Name, Code: item.Operator.Code},
-		StartDate:     item.StartDate.Format("2006-01-02"),
-		EndDate:       item.EndDate.Format("2006-01-02"),
-		Pax:           item.Pax,
-		Price:         item.Price,
-		PackageType:   item.PackageType,
-		Highlights:    nonNil(item.Highlights),
-		Inclusions:    nonNil(item.Inclusions),
-		Exclusions:    nonNil(item.Exclusions),
-		Difficulty:    item.Difficulty,
-		MeetingPoint:  item.MeetingPoint,
-		Location:      item.Location,
-		Currency:      item.Currency,
-		EcoCertified:  item.EcoCertified,
-		Attractions:   attractions,
-		Itinerary:     days,
-		FileResources: files,
-		CreatedAt:     item.CreatedAt,
-		UpdatedAt:     item.UpdatedAt,
+		UUID:            item.UUID,
+		Name:            item.Name,
+		Description:     item.Description,
+		Operator:        Ref{UUID: item.Operator.UUID, Name: item.Operator.Name, Code: item.Operator.Code},
+		StartDate:       item.StartDate.Format("2006-01-02"),
+		EndDate:         item.EndDate.Format("2006-01-02"),
+		Pax:             item.Pax,
+		Price:           item.Price,
+		PackageType:     item.PackageType,
+		Highlights:      nonNil(item.Highlights),
+		Inclusions:      nonNil(item.Inclusions),
+		Exclusions:      nonNil(item.Exclusions),
+		Difficulty:      item.Difficulty,
+		MeetingPoint:    item.MeetingPoint,
+		Location:        item.Location,
+		Currency:        item.Currency,
+		EcoCertified:    item.EcoCertified,
+		SellingResponse: SellingOf(item),
+		Attractions:     attractions,
+		Itinerary:       days,
+		FileResources:   files,
+		CreatedAt:       item.CreatedAt,
+		UpdatedAt:       item.UpdatedAt,
 	}
 }
 
@@ -296,6 +299,10 @@ func apply(item *Package, input Input, scope companyscope.Scope) (Links, error) 
 		}
 		difficulty = &lower
 	}
+	selling, err := sellingFrom(input.SellingInput, input.Pax)
+	if err != nil {
+		return Links{}, err
+	}
 	currency := strings.ToUpper(strings.TrimSpace(input.Currency))
 	if currency == "" {
 		currency = "USD"
@@ -339,6 +346,7 @@ func apply(item *Package, input Input, scope companyscope.Scope) (Links, error) 
 	item.Location = optional(input.Location)
 	item.Currency = currency
 	item.EcoCertified = input.EcoCertified
+	item.Selling = selling
 	item.FileResources = files
 	return Links{Files: files, Attractions: attractions, Itinerary: days}, nil
 }
@@ -422,6 +430,9 @@ func Update(id uuid.UUID, input Input, scope companyscope.Scope) (Response, erro
 	}
 	links, err := apply(&item, input, scope)
 	if err != nil {
+		return Response{}, err
+	}
+	if err := fitsBookings(item); err != nil {
 		return Response{}, err
 	}
 	if err := Save(&item, links); err != nil {
