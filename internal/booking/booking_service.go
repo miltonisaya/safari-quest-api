@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"safari-quest-api/database"
 	"safari-quest-api/internal/companyscope"
 	"safari-quest-api/internal/tourpackage"
 	"safari-quest-api/internal/user"
@@ -33,6 +32,7 @@ var (
 type StaffInput struct {
 	PackageUUID  uuid.UUID `json:"package_uuid" binding:"required"`
 	TravelerUUID uuid.UUID `json:"traveler_uuid" binding:"required"`
+	BookingType  string    `json:"booking_type"` // shared (default) or private
 	Pax          int       `json:"pax" binding:"required,min=1"`
 	Notes        *string   `json:"notes"`
 	Status       Status    `json:"status"` // pending (default) or confirmed
@@ -48,6 +48,7 @@ type UpdateInput struct {
 // TravelerInput is what a signed-in traveler sends to book a package.
 type TravelerInput struct {
 	PackageUUID uuid.UUID `json:"package_uuid" binding:"required"`
+	BookingType string    `json:"booking_type"` // shared (default) or private
 	Pax         int       `json:"pax" binding:"required,min=1"`
 	Notes       *string   `json:"notes"`
 }
@@ -74,44 +75,50 @@ type TravelerRef struct {
 }
 
 type Response struct {
-	UUID         uuid.UUID   `json:"uuid"`
-	Code         string      `json:"code"`
-	Package      PackageRef  `json:"package"`
-	TourOperator Ref         `json:"tour_operator"`
-	Traveler     TravelerRef `json:"traveler"`
-	Pax          int         `json:"pax"`
-	UnitPrice    float64     `json:"unit_price"`
-	TotalPrice   float64     `json:"total_price"`
-	Status       Status      `json:"status"`
-	Notes        *string     `json:"notes"`
-	ConfirmedAt  *time.Time  `json:"confirmed_at"`
-	CancelledAt  *time.Time  `json:"cancelled_at"`
-	CreatedAt    time.Time   `json:"created_at"`
-	UpdatedAt    time.Time   `json:"updated_at"`
+	UUID              uuid.UUID   `json:"uuid"`
+	Code              string      `json:"code"`
+	Package           PackageRef  `json:"package"`
+	TourOperator      Ref         `json:"tour_operator"`
+	Traveler          TravelerRef `json:"traveler"`
+	Pax               int         `json:"pax"`
+	BookingType       string      `json:"booking_type"`
+	Group             int         `json:"group"`
+	Pricing           string      `json:"pricing"`
+	MinTravellers     int         `json:"min_travellers"`
+	ChargedTravellers int         `json:"charged_travellers"`
+	UnitPrice         float64     `json:"unit_price"`
+	TotalPrice        float64     `json:"total_price"`
+	Status            Status      `json:"status"`
+	Notes             *string     `json:"notes"`
+	ConfirmedAt       *time.Time  `json:"confirmed_at"`
+	CancelledAt       *time.Time  `json:"cancelled_at"`
+	CreatedAt         time.Time   `json:"created_at"`
+	UpdatedAt         time.Time   `json:"updated_at"`
 }
 
 // BookableResponse is a package a traveler can still book.
 type BookableResponse struct {
-	UUID         uuid.UUID                  `json:"uuid"`
-	Name         string                     `json:"name"`
-	Description  string                     `json:"description"`
-	TourOperator Ref                        `json:"tour_operator"`
-	StartDate    string                     `json:"start_date"`
-	EndDate      string                     `json:"end_date"`
-	PackageType  string                     `json:"package_type"`
-	PricePerHead float64                    `json:"price_per_person"`
-	Pax          int                        `json:"pax"`
-	SeatsLeft    int                        `json:"seats_left"`
-	Difficulty   *string                    `json:"difficulty"`
-	Rating       tourpackage.RatingResponse `json:"rating"`
+	UUID         uuid.UUID `json:"uuid"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	TourOperator Ref       `json:"tour_operator"`
+	StartDate    string    `json:"start_date"`
+	EndDate      string    `json:"end_date"`
+	PackageType  string    `json:"package_type"`
+	PricePerHead float64   `json:"price_per_person"`
+	Pax          int       `json:"pax"`
+	tourpackage.SellingResponse
+	Availability
+	Difficulty *string                    `json:"difficulty"`
+	Rating     tourpackage.RatingResponse `json:"rating"`
 }
 
 // BookableDetail is everything a traveler sees before booking a package.
 type BookableDetail struct {
 	tourpackage.Response
 	PricePerHead float64 `json:"price_per_person"`
-	SeatsLeft    int     `json:"seats_left"`
-	Bookable     bool    `json:"bookable"` // false once started or full
+	Availability
+	Bookable bool `json:"bookable"` // false once started, full or not published
 }
 
 func travelerRef(u user.User) TravelerRef {
@@ -134,17 +141,22 @@ func ToResponse(b Booking) Response {
 			EndDate:     b.Package.EndDate.Format("2006-01-02"),
 			PackageType: b.Package.PackageType,
 		},
-		TourOperator: Ref{UUID: b.TourOperator.UUID, Name: b.TourOperator.Name, Code: b.TourOperator.Code},
-		Traveler:     travelerRef(b.User),
-		Pax:          b.Pax,
-		UnitPrice:    b.UnitPrice,
-		TotalPrice:   b.TotalPrice,
-		Status:       b.Status,
-		Notes:        b.Notes,
-		ConfirmedAt:  b.ConfirmedAt,
-		CancelledAt:  b.CancelledAt,
-		CreatedAt:    b.CreatedAt,
-		UpdatedAt:    b.UpdatedAt,
+		TourOperator:      Ref{UUID: b.TourOperator.UUID, Name: b.TourOperator.Name, Code: b.TourOperator.Code},
+		Traveler:          travelerRef(b.User),
+		Pax:               b.Pax,
+		BookingType:       b.BookingType,
+		Group:             b.UnitNumber,
+		Pricing:           b.Pricing,
+		MinTravellers:     b.MinTravellers,
+		ChargedTravellers: b.ChargedTravellers,
+		UnitPrice:         b.UnitPrice,
+		TotalPrice:        b.TotalPrice,
+		Status:            b.Status,
+		Notes:             b.Notes,
+		ConfirmedAt:       b.ConfirmedAt,
+		CancelledAt:       b.CancelledAt,
+		CreatedAt:         b.CreatedAt,
+		UpdatedAt:         b.UpdatedAt,
 	}
 }
 
@@ -203,27 +215,39 @@ func publish(action ws.Action, resp Response) {
 }
 
 // create builds and stores a new booking for traveler on the package.
-func create(pkg tourpackage.Package, traveler user.User, pax int, notes *string, status Status) (Response, error) {
+func create(pkg tourpackage.Package, traveler user.User, requestedType string, pax int, notes *string, status Status) (Response, error) {
 	if started(pkg) {
 		return Response{}, ErrDeparted
 	}
 	if !traveler.IsActive {
 		return Response{}, ErrInactiveTraveler
 	}
+	kind, err := bookingType(requestedType)
+	if err != nil {
+		return Response{}, err
+	}
+	q, err := quote(pkg, kind, pax)
+	if err != nil {
+		return Response{}, err
+	}
 	code, err := newCode()
 	if err != nil {
 		return Response{}, err
 	}
 	b := Booking{
-		Code:           code,
-		PackageID:      pkg.ID,
-		TourOperatorID: pkg.OperatorID,
-		UserID:         traveler.ID,
-		Pax:            pax,
-		UnitPrice:      pkg.Price,
-		TotalPrice:     pkg.Price * float64(pax),
-		Status:         StatusPending,
-		Notes:          notes,
+		Code:              code,
+		PackageID:         pkg.ID,
+		TourOperatorID:    pkg.OperatorID,
+		UserID:            traveler.ID,
+		Pax:               pax,
+		BookingType:       kind,
+		Pricing:           q.Pricing,
+		MinTravellers:     q.MinTravellers,
+		ChargedTravellers: q.ChargedTravellers,
+		UnitPrice:         q.UnitPrice,
+		TotalPrice:        q.Total,
+		Status:            StatusPending,
+		Notes:             notes,
 	}
 	if status != "" && status != StatusPending {
 		if err := applyStatus(&b, status); err != nil {
@@ -285,7 +309,7 @@ func Create(input StaffInput, scope companyscope.Scope) (Response, error) {
 	if err != nil {
 		return Response{}, fmt.Errorf("%w: traveler_uuid", ErrInvalidReference)
 	}
-	return create(pkg, traveler, input.Pax, input.Notes, input.Status)
+	return create(pkg, traveler, input.BookingType, input.Pax, input.Notes, input.Status)
 }
 
 // Update changes guests, notes and status. Completed and cancelled bookings
@@ -305,8 +329,14 @@ func Update(id uuid.UUID, input UpdateInput, scope companyscope.Scope) (Response
 		if started(b.Package) {
 			return Response{}, ErrDeparted
 		}
+		if input.Pax > b.Package.Pax {
+			return Response{}, errGroupTooSmall(b.Package.Pax)
+		}
+		// Re-price with the booking's own copy of the pricing, not today's package price.
+		q := reprice(Quote{Pricing: b.Pricing, UnitPrice: b.UnitPrice, MinTravellers: b.MinTravellers}, input.Pax)
 		b.Pax = input.Pax
-		b.TotalPrice = b.UnitPrice * float64(input.Pax)
+		b.ChargedTravellers = q.ChargedTravellers
+		b.TotalPrice = q.Total
 	}
 	b.Notes = input.Notes
 	if err := applyStatus(&b, input.Status); err != nil {
@@ -370,18 +400,19 @@ func Bookable(params pagination.Params) (pagination.Result[BookableResponse], er
 	items := make([]BookableResponse, len(rows))
 	for i, row := range rows {
 		items[i] = BookableResponse{
-			UUID:         row.UUID,
-			Name:         row.Name,
-			Description:  row.Description,
-			TourOperator: Ref{UUID: row.Operator.UUID, Name: row.Operator.Name, Code: row.Operator.Code},
-			StartDate:    row.StartDate.Format("2006-01-02"),
-			EndDate:      row.EndDate.Format("2006-01-02"),
-			PackageType:  row.PackageType,
-			PricePerHead: row.Price,
-			Pax:          row.Pax,
-			SeatsLeft:    row.SeatsLeft,
-			Difficulty:   row.Difficulty,
-			Rating:       tourpackage.RatingResponse{Average: ratings[row.ID].Average, Count: ratings[row.ID].Count},
+			UUID:            row.UUID,
+			Name:            row.Name,
+			Description:     row.Description,
+			TourOperator:    Ref{UUID: row.Operator.UUID, Name: row.Operator.Name, Code: row.Operator.Code},
+			StartDate:       row.StartDate.Format("2006-01-02"),
+			EndDate:         row.EndDate.Format("2006-01-02"),
+			PackageType:     row.PackageType,
+			PricePerHead:    row.Price,
+			Pax:             row.Pax,
+			SellingResponse: tourpackage.SellingOf(row.Package),
+			Availability:    row.Availability,
+			Difficulty:      row.Difficulty,
+			Rating:          tourpackage.RatingResponse{Average: ratings[row.ID].Average, Count: ratings[row.ID].Count},
 		}
 	}
 	return pagination.Result[BookableResponse]{Items: items, Meta: pagination.NewMeta(total, params)}, nil
@@ -395,7 +426,7 @@ func BookableByUUID(id uuid.UUID) (BookableDetail, error) {
 	if err != nil {
 		return BookableDetail{}, err
 	}
-	taken, err := seatsHeld(database.GORM_DB, pkg.ID, 0)
+	available, err := AvailabilityFor([]tourpackage.Package{pkg})
 	if err != nil {
 		return BookableDetail{}, err
 	}
@@ -403,15 +434,12 @@ func BookableByUUID(id uuid.UUID) (BookableDetail, error) {
 	if err != nil {
 		return BookableDetail{}, err
 	}
-	left := pkg.Pax - taken
-	if left < 0 {
-		left = 0
-	}
+	a := available[pkg.ID]
 	return BookableDetail{
 		Response:     tourpackage.ToResponseRated(pkg, ratings[pkg.ID]),
 		PricePerHead: pkg.Price,
-		SeatsLeft:    left,
-		Bookable:     left > 0 && !started(pkg) && tourpackage.Published(pkg),
+		Availability: a,
+		Bookable:     a.Bookable() && !started(pkg) && tourpackage.Published(pkg),
 	}, nil
 }
 
@@ -445,7 +473,7 @@ func Book(travelerUUID uuid.UUID, input TravelerInput) (Response, error) {
 	if !tourpackage.Published(pkg) {
 		return Response{}, ErrUnavailable
 	}
-	return create(pkg, traveler, input.Pax, input.Notes, StatusPending)
+	return create(pkg, traveler, input.BookingType, input.Pax, input.Notes, StatusPending)
 }
 
 // CancelMine cancels one of the traveler's own pending or confirmed bookings.
