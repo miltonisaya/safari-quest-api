@@ -13,8 +13,8 @@ func TestStrongPassword(t *testing.T) {
 		"safari2026":   true,
 		"Kilimanjaro9": true,
 	} {
-		if got := strongPassword(pw); got != want {
-			t.Errorf("strongPassword(%q) = %v, want %v", pw, got, want)
+		if got := StrongPassword(pw); got != want {
+			t.Errorf("StrongPassword(%q) = %v, want %v", pw, got, want)
 		}
 	}
 }
