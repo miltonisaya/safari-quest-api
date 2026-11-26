@@ -174,8 +174,10 @@ func fail(c *gin.Context, err error, fallback string) {
 	case errors.Is(err, ErrOutsideCompany), errors.Is(err, companyscope.ErrNoCompany):
 		response.Fail(c, http.StatusForbidden, ErrOutsideCompany.Error(), nil)
 	case errors.Is(err, ErrInvalidReference), errors.Is(err, ErrInvalidPackage), errors.Is(err, ErrAttachment),
-		errors.Is(err, ErrInvalidItinerary), errors.Is(err, ErrInvalidDetails):
+		errors.Is(err, ErrInvalidItinerary), errors.Is(err, ErrInvalidDetails), errors.Is(err, ErrInvalidSelling):
 		response.Fail(c, http.StatusBadRequest, err.Error(), nil)
+	case errors.Is(err, ErrBookedBeyond):
+		response.Fail(c, http.StatusConflict, err.Error(), nil)
 	case errors.Is(err, errUnauthenticated):
 		response.Fail(c, http.StatusUnauthorized, "Unauthorized", nil)
 	default:
