@@ -5,6 +5,7 @@ import (
 	attractionType "safari-quest-api/internal/attractiontype"
 
 	"safari-quest-api/internal/account"
+	"safari-quest-api/internal/agegroup"
 	"safari-quest-api/internal/attraction"
 	"safari-quest-api/internal/attractioncategory"
 	"safari-quest-api/internal/auth"
@@ -18,6 +19,7 @@ import (
 	"safari-quest-api/internal/menu"
 	"safari-quest-api/internal/review"
 	"safari-quest-api/internal/role"
+	"safari-quest-api/internal/setting"
 	"safari-quest-api/internal/touroperator"
 	"safari-quest-api/internal/tourpackage"
 	"safari-quest-api/internal/user"
@@ -35,8 +37,9 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	rg.GET("/health", healthCheck)
 	rg.GET("/uploads/:name", fileresource.Serve)
 	auth.RegisterRoutes(rg)
-	account.RegisterPublicRoutes(rg) // forgot / reset password
-	catalog.RegisterRoutes(rg)       // public package catalog for the website
+	account.RegisterPublicRoutes(rg)  // forgot / reset password
+	agegroup.RegisterPublicRoutes(rg) // age groups for booking forms
+	catalog.RegisterRoutes(rg)        // public package catalog for the website
 
 	// Signed in, but not behind Authorize(): every account uses these.
 	signedIn := rg.Group("", middlewares.Auth())
@@ -62,6 +65,8 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	tourpackage.RegisterRoutes(protected)
 	booking.RegisterRoutes(protected)
 	review.RegisterRoutes(protected)
+	setting.RegisterRoutes(protected)
+	agegroup.RegisterRoutes(protected)
 }
 
 func healthCheck(c *gin.Context) {
