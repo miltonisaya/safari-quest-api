@@ -2,49 +2,29 @@ package booking
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"safari-quest-api/config"
-	"safari-quest-api/pkg/mailer"
+	"safari-quest-api/internal/email"
+
+	"gorm.io/gorm"
 )
 
-// Emails about bookings go out in the background, so a slow or missing mail
-// server never delays or fails the booking itself.
+// Booking emails are written to the email outbox in the same transaction as
+// the booking change, then sent asynchronously through RabbitMQ (see
+// internal/email). If the change rolls back, no email exists to send.
+
+// mailFn returns the emails a save causes; it runs inside the save's
+// transaction after the booking row is written.
+type mailFn func(tx *gorm.DB, b *Booking) ([]email.Draft, error)
 
 func appLink(path string) string {
 	return strings.TrimRight(config.App.AppURL, "/") + path
 }
 
-func send(to []string, subject, body string) {
-	for _, addr := range to {
-		if addr == "" {
-			continue
-		}
-		go func(addr string) {
-			if err := mailer.Send(addr, subject, body); err != nil {
-				log.Printf("[booking] could not email %s: %v\n", addr, err)
-			}
-		}(addr)
-	}
-}
-
-func toStaff(b Booking, subject, body string) {
-	emails, err := staffEmails(b.Package.OperatorID)
-	if err != nil {
-		log.Printf("[booking] could not find staff of company %d: %v\n", b.Package.OperatorID, err)
-		return
-	}
-	send(emails, subject, body)
-}
-
-func toTraveler(b Booking, subject, body string) {
-	send([]string{b.User.Email}, subject, body)
-}
-
-// summary is the booking block shared by every email.
-func summary(b Booking) string {
-	kind := fmt.Sprintf("Shared seats, group %d", b.UnitNumber)
+// details is the booking summary shown in every booking email.
+func details(b *Booking) []email.Detail {
+	kind := fmt.Sprintf("Shared seats · group %d", b.UnitNumber)
 	if b.BookingType == TypePrivate {
 		kind = fmt.Sprintf("Private group %d", b.UnitNumber)
 	}
@@ -52,116 +32,135 @@ func summary(b Booking) string {
 	if b.ChargedTravellers > b.Pax && b.Pricing != "per_group" {
 		travellers += fmt.Sprintf(" (charged for %d)", b.ChargedTravellers)
 	}
-	return fmt.Sprintf(`Reference:   %s
-Trip:        %s
-Dates:       %s to %s
-Booking:     %s
-Travellers:  %s
-Total:       %s %.2f
-Company:     %s`,
-		b.Code, b.Package.Name,
-		b.Package.StartDate.Format("Mon 2 Jan 2006"), b.Package.EndDate.Format("Mon 2 Jan 2006"),
-		kind, travellers, b.Package.Currency, b.TotalPrice, b.TourOperator.Name)
+	return []email.Detail{
+		{Label: "Reference", Value: b.Code},
+		{Label: "Trip", Value: b.Package.Name},
+		{Label: "Dates", Value: b.Package.StartDate.Format("Mon 2 Jan 2006") + " – " + b.Package.EndDate.Format("Mon 2 Jan 2006")},
+		{Label: "Booking", Value: kind},
+		{Label: "Travellers", Value: travellers},
+		{Label: "Total", Value: fmt.Sprintf("%s %s", b.Package.Currency, money(b.TotalPrice))},
+		{Label: "Company", Value: b.TourOperator.Name},
+	}
 }
 
-func deadline(b Booking) string {
+func deadline(b *Booking) string {
 	if b.ExpiresAt == nil {
 		return ""
 	}
 	return " by " + b.ExpiresAt.Format("Mon 2 Jan 2006, 15:04 MST")
 }
 
-// notifyCreated tells the traveler their request arrived (or was recorded as
-// confirmed) and tells the company's staff there is a booking to answer.
-func notifyCreated(b Booking) {
-	if b.Status == StatusConfirmed {
-		toTraveler(b, "Booking confirmed: "+b.Package.Name, fmt.Sprintf(`Hello %s,
-
-%s has booked you on this trip and confirmed it.
-
-%s
-
-Your confirmation voucher: %s
-
-The SafariQuest team
-`, b.User.FirstName, b.TourOperator.Name, summary(b), appLink("/my-bookings/"+b.UUID.String()+"/voucher")))
-		return
+func staffDrafts(tx *gorm.DB, b *Booking, kind string, c email.Content) ([]email.Draft, error) {
+	var emails []string
+	err := tx.Table("users").
+		Joins("JOIN tour_operator_users tou ON tou.user_id = users.id").
+		Where("tou.tour_operator_id = ? AND users.is_active = ? AND users.deleted_at IS NULL", b.Package.OperatorID, true).
+		Pluck("users.email", &emails).Error
+	out := make([]email.Draft, len(emails))
+	for i, e := range emails {
+		out[i] = email.Draft{Kind: kind, To: e, Content: c}
 	}
-	toTraveler(b, "Booking received: "+b.Package.Name, fmt.Sprintf(`Hello %s,
-
-Thank you for booking. %s will confirm your place%s. We'll email you as soon as they do.
-
-%s
-
-See your bookings: %s
-
-The SafariQuest team
-`, b.User.FirstName, b.TourOperator.Name, deadline(b), summary(b), appLink("/my-bookings")))
-
-	toStaff(b, "New booking to confirm: "+b.Code, fmt.Sprintf(`A new booking is waiting for your answer%s.
-
-%s
-Traveler:    %s %s <%s>
-
-Confirm or decline it: %s
-`, deadline(b), summary(b), b.User.FirstName, b.User.LastName, b.User.Email, appLink("/bookings")))
+	return out, err
 }
 
-// notifyStatus emails whoever needs to know about a status change.
+func traveler(b *Booking, kind string, c email.Content) email.Draft {
+	return email.Draft{Kind: kind, To: b.User.Email, Content: c}
+}
+
+// mailsCreated: the traveler hears the request arrived (or was recorded as
+// confirmed) and the company's staff hear there's a booking to answer.
+func mailsCreated(tx *gorm.DB, b *Booking) ([]email.Draft, error) {
+	voucher := appLink("/my-bookings/" + b.UUID.String() + "/voucher")
+	if b.Status == StatusConfirmed {
+		return []email.Draft{traveler(b, "booking_confirmed", email.Content{
+			Subject:    "Booking confirmed: " + b.Package.Name,
+			Heading:    "You're booked",
+			Paragraphs: []string{fmt.Sprintf("Hello %s, %s has booked you on this trip and confirmed it.", b.User.FirstName, b.TourOperator.Name)},
+			Details:    details(b),
+			Button:     &email.Button{Label: "View your voucher", URL: voucher},
+		})}, nil
+	}
+	drafts := []email.Draft{traveler(b, "booking_received", email.Content{
+		Subject:   "Booking received: " + b.Package.Name,
+		Preheader: fmt.Sprintf("%s will confirm your place%s.", b.TourOperator.Name, deadline(b)),
+		Heading:   "Thanks, we've got your booking",
+		Paragraphs: []string{
+			fmt.Sprintf("Hello %s, %s will confirm your place%s. We'll email you as soon as they do.", b.User.FirstName, b.TourOperator.Name, deadline(b)),
+		},
+		Details: details(b),
+		Button:  &email.Button{Label: "Add traveller details", URL: appLink("/my-bookings")},
+		After:   []string{"Adding who is travelling helps the company confirm your booking sooner."},
+	})}
+	staff, err := staffDrafts(tx, b, "booking_new_staff", email.Content{
+		Subject:    "New booking to confirm: " + b.Code,
+		Preheader:  fmt.Sprintf("%s %s booked %s.", b.User.FirstName, b.User.LastName, b.Package.Name),
+		Heading:    "A new booking is waiting for you",
+		Paragraphs: []string{fmt.Sprintf("Please confirm or decline it%s, or it expires and the seats are released.", deadline(b))},
+		Details:    append(details(b), email.Detail{Label: "Traveler", Value: fmt.Sprintf("%s %s · %s", b.User.FirstName, b.User.LastName, b.User.Email)}),
+		Button:     &email.Button{Label: "Confirm or decline", URL: appLink("/bookings")},
+	})
+	return append(drafts, staff...), err
+}
+
+// mailsStatus emails whoever needs to know about a status change.
 // byTraveler is true when the traveler made the change (their own cancellation).
-func notifyStatus(b Booking, byTraveler bool) {
-	switch b.Status {
-	case StatusConfirmed:
-		toTraveler(b, "Booking confirmed: "+b.Package.Name, fmt.Sprintf(`Hello %s,
+func mailsStatus(byTraveler bool) mailFn {
+	return func(tx *gorm.DB, b *Booking) ([]email.Draft, error) {
+		switch b.Status {
+		case StatusConfirmed:
+			return []email.Draft{traveler(b, "booking_confirmed", email.Content{
+				Subject:    "Booking confirmed: " + b.Package.Name,
+				Preheader:  "Your place is confirmed. Your voucher is ready.",
+				Heading:    "Good news: you're confirmed",
+				Paragraphs: []string{fmt.Sprintf("Hello %s, %s has confirmed your booking.", b.User.FirstName, b.TourOperator.Name)},
+				Details:    details(b),
+				Button:     &email.Button{Label: "View your voucher", URL: appLink("/my-bookings/" + b.UUID.String() + "/voucher")},
+			})}, nil
 
-Good news: %s has confirmed your booking.
+		case StatusDeclined:
+			reason := ""
+			if b.DeclineReason != nil {
+				reason = *b.DeclineReason
+			}
+			return []email.Draft{traveler(b, "booking_declined", email.Content{
+				Subject:    "Booking not accepted: " + b.Package.Name,
+				Heading:    "Sorry, this booking wasn't accepted",
+				Paragraphs: []string{fmt.Sprintf("Hello %s, %s couldn't accept your booking %s. Your seats have been released and you have not been charged.", b.User.FirstName, b.TourOperator.Name, b.Code)},
+				Quote:      reason,
+				Button:     &email.Button{Label: "Find another trip", URL: appLink("/explore")},
+			})}, nil
 
-%s
+		case StatusExpired:
+			drafts := []email.Draft{traveler(b, "booking_expired", email.Content{
+				Subject:    "Booking expired: " + b.Package.Name,
+				Heading:    "Your booking expired",
+				Paragraphs: []string{fmt.Sprintf("Hello %s, %s didn't confirm booking %s in time, so it expired and the seats were released.", b.User.FirstName, b.TourOperator.Name, b.Code)},
+				Button:     &email.Button{Label: "Book again", URL: appLink("/explore")},
+			})}
+			staff, err := staffDrafts(tx, b, "booking_expired_staff", email.Content{
+				Subject:    "Booking expired: " + b.Code,
+				Heading:    "A booking expired",
+				Paragraphs: []string{"Nobody confirmed this booking in time, so it expired and its seats are free again."},
+				Details:    details(b),
+			})
+			return append(drafts, staff...), err
 
-Your confirmation voucher: %s
-
-The SafariQuest team
-`, b.User.FirstName, b.TourOperator.Name, summary(b), appLink("/my-bookings/"+b.UUID.String()+"/voucher")))
-
-	case StatusDeclined:
-		reason := ""
-		if b.DeclineReason != nil {
-			reason = "\nTheir reason: " + *b.DeclineReason + "\n"
+		case StatusCancelled:
+			if byTraveler {
+				return staffDrafts(tx, b, "booking_cancelled_by_traveler", email.Content{
+					Subject:    "Booking cancelled by the traveler: " + b.Code,
+					Heading:    "A traveler cancelled",
+					Paragraphs: []string{fmt.Sprintf("%s %s cancelled this booking. Its seats are free again.", b.User.FirstName, b.User.LastName)},
+					Details:    details(b),
+				})
+			}
+			return []email.Draft{traveler(b, "booking_cancelled", email.Content{
+				Subject:    "Booking cancelled: " + b.Package.Name,
+				Heading:    "Your booking was cancelled",
+				Paragraphs: []string{fmt.Sprintf("Hello %s, %s has cancelled your booking %s.", b.User.FirstName, b.TourOperator.Name, b.Code)},
+				After:      []string{"Questions? Contact the company at " + b.TourOperator.Email + "."},
+			})}, nil
 		}
-		toTraveler(b, "Booking not accepted: "+b.Package.Name, fmt.Sprintf(`Hello %s,
-
-Sorry, %s could not accept your booking %s.
-%s
-Your seats have been released and you have not been charged. Other trips with open seats: %s
-
-The SafariQuest team
-`, b.User.FirstName, b.TourOperator.Name, b.Code, reason, appLink("/explore")))
-
-	case StatusExpired:
-		toTraveler(b, "Booking expired: "+b.Package.Name, fmt.Sprintf(`Hello %s,
-
-%s did not confirm your booking %s in time, so it has expired and the seats were released. You can book again if seats are still open: %s
-
-The SafariQuest team
-`, b.User.FirstName, b.TourOperator.Name, b.Code, appLink("/explore")))
-		toStaff(b, "Booking expired: "+b.Code, fmt.Sprintf(`Booking %s expired because nobody confirmed it in time. Its seats are free again.
-
-%s
-`, b.Code, summary(b)))
-
-	case StatusCancelled:
-		if byTraveler {
-			toStaff(b, "Booking cancelled by the traveler: "+b.Code, fmt.Sprintf(`%s %s cancelled this booking. Its seats are free again.
-
-%s
-`, b.User.FirstName, b.User.LastName, summary(b)))
-			return
-		}
-		toTraveler(b, "Booking cancelled: "+b.Package.Name, fmt.Sprintf(`Hello %s,
-
-%s has cancelled your booking %s. Contact them at %s if you have questions.
-
-The SafariQuest team
-`, b.User.FirstName, b.TourOperator.Name, b.Code, b.TourOperator.Email))
+		return nil, nil
 	}
 }
