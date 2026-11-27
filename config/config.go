@@ -18,6 +18,8 @@ type config struct {
 	AdminDefaultPassword string
 	SwaggerHost          string
 	UploadDir            string
+	// PrivateUploadDir holds files that must never be public (ID copies).
+	PrivateUploadDir string
 	// AppURL is the website address used in emailed links (password reset).
 	AppURL string
 	// SMTP settings; when SMTPHost is empty, emails are written to the log instead.
@@ -47,6 +49,7 @@ func Load() {
 		AdminDefaultPassword: getEnv("ADMIN_DEFAULT_PASSWORD", ""),
 		SwaggerHost:          getEnv("SWAGGER_HOST", "localhost:"+port),
 		UploadDir:            getEnv("UPLOAD_DIR", "uploads"),
+		PrivateUploadDir:     getEnv("PRIVATE_UPLOAD_DIR", "private_uploads"),
 		AppURL:               getEnv("APP_URL", "http://localhost:4200"),
 		SMTPHost:             getEnv("SMTP_HOST", ""),
 		SMTPPort:             getEnv("SMTP_PORT", "587"),
