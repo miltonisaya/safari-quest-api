@@ -14,8 +14,8 @@ type Controller struct{}
 
 // ForgotPassword godoc
 //
-//	@Summary		Request a password reset link
-//	@Description	Emails a one-hour reset link if the address belongs to an active account. Always answers the same way, so it does not reveal who has an account.
+//	@Summary		Request a password reset code
+//	@Description	Emails a 6-digit code (valid 10 minutes) through the email queue if the address belongs to an active account. Always answers the same way, so it does not reveal who has an account.
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
@@ -33,23 +33,23 @@ func (Controller) ForgotPassword(c *gin.Context) {
 		response.Error(c, http.StatusInternalServerError, "Could not send the reset link. Please try again.")
 		return
 	}
-	response.Success(c, http.StatusOK, "If an account uses that email, we've sent a link to reset its password.", nil)
+	response.Success(c, http.StatusOK, "If an account uses that email, we've sent it a 6-digit code.", nil)
 }
 
 // ResetPassword godoc
 //
-//	@Summary		Set a new password from a reset link
+//	@Summary		Set a new password with an emailed code
 //	@Tags			Account
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		account.ResetInput	true	"Token from the emailed link and the new password"
+//	@Param			body	body		account.ResetInput	true	"Email, the 6-digit code and the new password"
 //	@Success		200		{object}	response.CustomApiResponse
 //	@Failure		400		{object}	response.CustomApiResponse
 //	@Router			/auth/reset-password [post]
 func (Controller) ResetPassword(c *gin.Context) {
 	var input ResetInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		response.Fail(c, http.StatusBadRequest, "Enter a new password", gin.H{"error": err.Error()})
+		response.Fail(c, http.StatusBadRequest, "Enter your email, the 6-digit code and a new password", gin.H{"error": err.Error()})
 		return
 	}
 	if err := ResetPassword(input); err != nil {
@@ -131,7 +131,7 @@ func (Controller) ChangeMyPassword(c *gin.Context) {
 
 func fail(c *gin.Context, err error) {
 	switch {
-	case errors.Is(err, ErrWeakPassword), errors.Is(err, ErrInvalidLink), errors.Is(err, ErrWrongPassword),
+	case errors.Is(err, ErrWeakPassword), errors.Is(err, ErrInvalidCode), errors.Is(err, ErrWrongPassword),
 		errors.Is(err, ErrSamePassword), errors.Is(err, ErrInvalidName), errors.Is(err, ErrInvalidSex):
 		response.Fail(c, http.StatusBadRequest, err.Error(), nil)
 	case errors.Is(err, ErrAccountNotFound):
