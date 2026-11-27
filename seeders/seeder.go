@@ -134,6 +134,12 @@ func grantTourOperatorUserAccess() {
 		"file-resource-type_get",
 		// Bookings on their own packages; cancelling replaces deleting.
 		"booking_get", "booking_post", "booking_put", "traveler_get",
+		// Answer pending bookings.
+		"booking-confirmation_post", "booking-decline_post",
+		// Read the group's traveller details and the leader's ID before confirming.
+		"booking-traveller_get", "booking-traveller-id_get",
+		// Chat with travelers about their bookings.
+		"booking-message_get", "booking-message_post", "message-thread_get",
 		// Read and answer reviews of their own packages; hiding stays with administrators.
 		"review_get", "review-reply_put", "package-review_get", "attraction_get",
 	}
