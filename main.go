@@ -2,8 +2,16 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"safari-quest-api/internal/booking"
+	"safari-quest-api/internal/email"
 
 	"safari-quest-api/docs"
 
@@ -42,6 +50,24 @@ func main() {
 		log.Fatalf("migrations failed: %v", err)
 	}
 
+	// Stops background work cleanly on Ctrl+C or a container stop.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	// `safari-quest-api worker` only sends queued emails (run it as its own
+	// process in production; scale it independently of the API).
+	if len(os.Args) > 1 && os.Args[1] == "worker" {
+		log.Println("[email] worker started")
+		email.RunWorker(ctx)
+		return
+	}
+
+	// Publish emails from the outbox to RabbitMQ; with EMAIL_WORKER_INLINE also send them here.
+	go email.RunRelay(ctx)
+	if config.App.EmailWorkerInline {
+		go email.RunWorker(ctx)
+	}
+
 	// Start the WebSocket hub before any connections can arrive.
 	go ws.GlobalHub.Run()
 
@@ -71,9 +97,20 @@ func main() {
 	}
 
 	// Expire pending bookings nobody confirmed in time (System Settings).
-	go booking.RunExpiry(context.Background())
+	go booking.RunExpiry(ctx)
 	// Delete travellers' ID copies once the retention period after a trip ends (System Settings).
-	go booking.RunIDCleanup(context.Background())
+	go booking.RunIDCleanup(ctx)
 
-	router.Run(":" + config.App.ServerPort)
+	// Serve until interrupted, then let in-flight requests finish.
+	srv := &http.Server{Addr: ":" + config.App.ServerPort, Handler: router}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("server failed: %v", err)
+		}
+	}()
+	<-ctx.Done()
+	log.Println("shutting down")
+	shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_ = srv.Shutdown(shutdown)
 }
