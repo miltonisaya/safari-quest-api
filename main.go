@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"log"
+	"safari-quest-api/internal/booking"
 
 	"safari-quest-api/docs"
 
@@ -67,6 +69,11 @@ func main() {
 	if config.App.SeedDemo {
 		seeders.SeedDemoPackages()
 	}
+
+	// Expire pending bookings nobody confirmed in time (System Settings).
+	go booking.RunExpiry(context.Background())
+	// Delete travellers' ID copies once the retention period after a trip ends (System Settings).
+	go booking.RunIDCleanup(context.Background())
 
 	router.Run(":" + config.App.ServerPort)
 }
