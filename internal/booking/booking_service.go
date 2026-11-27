@@ -281,7 +281,9 @@ func create(pkg tourpackage.Package, traveler user.User, requestedType string, p
 	if b.Status != StatusPending {
 		b.ExpiresAt = nil // recorded as confirmed straight away
 	}
-	if err := Insert(&b); err != nil {
+	// The emails need these; Insert does not write them.
+	b.Package, b.User, b.TourOperator = pkg, traveler, pkg.Operator
+	if err := Insert(&b, mailsCreated); err != nil {
 		return Response{}, err
 	}
 	saved, err := FindByUUID(b.UUID)
@@ -290,7 +292,6 @@ func create(pkg tourpackage.Package, traveler user.User, requestedType string, p
 	}
 	resp := ToResponse(saved)
 	publish(ws.ActionCreated, resp)
-	notifyCreated(saved)
 	return resp, nil
 }
 
@@ -380,7 +381,11 @@ func Update(id uuid.UUID, input UpdateInput, scope companyscope.Scope) (Response
 	if b.Status != StatusPending {
 		b.ExpiresAt = nil
 	}
-	if err := Save(&b); err != nil {
+	var mails mailFn
+	if b.Status != previous {
+		mails = mailsStatus(false)
+	}
+	if err := Save(&b, mails); err != nil {
 		return Response{}, err
 	}
 	saved, err := FindByUUID(b.UUID)
@@ -389,9 +394,6 @@ func Update(id uuid.UUID, input UpdateInput, scope companyscope.Scope) (Response
 	}
 	resp := ToResponse(saved)
 	publish(ws.ActionUpdated, resp)
-	if saved.Status != previous {
-		notifyStatus(saved, false)
-	}
 	return resp, nil
 }
 
@@ -536,7 +538,7 @@ func CancelMine(travelerUUID, bookingUUID uuid.UUID) (Response, error) {
 	if err := applyStatus(&b, StatusCancelled); err != nil {
 		return Response{}, err
 	}
-	if err := Save(&b); err != nil {
+	if err := Save(&b, mailsStatus(true)); err != nil {
 		return Response{}, err
 	}
 	saved, err := FindByUUID(b.UUID)
@@ -545,6 +547,5 @@ func CancelMine(travelerUUID, bookingUUID uuid.UUID) (Response, error) {
 	}
 	resp := ToResponse(saved)
 	publish(ws.ActionUpdated, resp)
-	notifyStatus(saved, true)
 	return resp, nil
 }
