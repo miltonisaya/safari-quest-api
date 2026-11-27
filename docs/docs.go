@@ -15,6 +15,72 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/age-groups": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Saves the whole list at once. Groups must start at 0 and run without gaps or overlaps, with only the oldest open-ended. Groups used by upcoming bookings can't be removed.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Age groups"
+                ],
+                "summary": "Replace the age groups",
+                "parameters": [
+                    {
+                        "description": "All age groups",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/agegroup.ReplaceInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/agegroup.Response"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/attraction-categories": {
             "get": {
                 "security": [
@@ -1405,6 +1471,495 @@ const docTemplate = `{
                 }
             }
         },
+        "/booking-confirmations/{uuid}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Accepts a pending booking on one of your company's packages; the traveler is emailed.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Confirm a pending booking",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/booking.Response"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/booking-declines/{uuid}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Turns a pending booking down with a reason the traveler sees, and frees its seats.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Decline a pending booking",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/booking.DeclineInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/booking.Response"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/booking-messages/{uuid}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Messages between the booking's traveler and the trip's company, oldest first. Opening it marks the other side's messages as read.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "A booking's chat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/booking.ConversationResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delivered live over the WebSocket to the traveler and the company's staff.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "Send a message about a booking",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Message",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/booking.MessageInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/booking.MessageResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/booking-traveller-ids/{uuid}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "For the booking's traveler or the trip's company only.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Traveller details"
+                ],
+                "summary": "Download the group leader's ID copy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "A photo (JPG, PNG, WebP) or PDF of the lead traveller's passport or national ID, up to 10 MB. Stored privately and deleted automatically after the trip.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Traveller details"
+                ],
+                "summary": "Upload the group leader's ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "ID copy",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/booking.DetailsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/booking-travellers/{uuid}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "The lead traveller, group members, preferred languages and special requests. For the booking's traveler or the trip's company.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Traveller details"
+                ],
+                "summary": "A booking's traveller details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/booking.DetailsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Replaces the lead traveller's details, the group members (one per extra traveller), preferred languages and special requests. Allowed until the trip starts while the booking is pending or confirmed.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Traveller details"
+                ],
+                "summary": "Save traveller details for my booking",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Traveller details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/booking.DetailsInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/booking.DetailsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/bookings": {
             "get": {
                 "security": [
@@ -1788,6 +2343,41 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalog/age-groups": {
+            "get": {
+                "description": "The age bands travellers are put in, youngest first. Public: the booking form needs them.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Age groups"
+                ],
+                "summary": "List age groups",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/agegroup.Response"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -3650,6 +4240,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/message-threads": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Bookings with messages that you take part in, newest first, with unread counts (for the bell).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messages"
+                ],
+                "summary": "My conversations",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/booking.ThreadResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/my-bookings": {
             "get": {
                 "security": [
@@ -3789,6 +4419,62 @@ const docTemplate = `{
             }
         },
         "/my-bookings/{uuid}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "The booking with its trip details, travellers and the company's contacts, for the confirmation voucher. Add ?format=pdf for a print-ready PDF (confirmed or completed bookings only).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "My Bookings"
+                ],
+                "summary": "One of my bookings in full",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking UUID",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/booking.Detail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -5144,6 +5830,104 @@ const docTemplate = `{
                 }
             }
         },
+        "/system-settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Every setting with its description, allowed range, default and current value.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System settings"
+                ],
+                "summary": "List system settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/setting.Response"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Saves the given values after checking each against its allowed range; nothing is saved if one is invalid.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System settings"
+                ],
+                "summary": "Change system settings",
+                "parameters": [
+                    {
+                        "description": "Values by key",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/setting.UpdateInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.CustomApiResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/setting.Response"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.CustomApiResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tour-operators": {
             "get": {
                 "security": [
@@ -6231,6 +7015,62 @@ const docTemplate = `{
                 }
             }
         },
+        "agegroup.Input": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "max_age": {
+                    "type": "integer"
+                },
+                "min_age": {
+                    "type": "integer",
+                    "maximum": 120,
+                    "minimum": 0
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 60
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "agegroup.ReplaceInput": {
+            "type": "object",
+            "required": [
+                "groups"
+            ],
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/agegroup.Input"
+                    }
+                }
+            }
+        },
+        "agegroup.Response": {
+            "type": "object",
+            "properties": {
+                "max_age": {
+                    "type": "integer"
+                },
+                "min_age": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
         "attraction.Input": {
             "type": "object",
             "required": [
@@ -6737,6 +7577,333 @@ const docTemplate = `{
                 }
             }
         },
+        "booking.CompanyContact": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "booking.ConversationResponse": {
+            "type": "object",
+            "properties": {
+                "booking_uuid": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "is_company": {
+                    "description": "the viewer answers for the company",
+                    "type": "boolean"
+                },
+                "last_message": {
+                    "$ref": "#/definitions/booking.MessageResponse"
+                },
+                "message_count": {
+                    "type": "integer"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/booking.MessageResponse"
+                    }
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/booking.Status"
+                },
+                "traveler": {
+                    "type": "string"
+                },
+                "trip_name": {
+                    "type": "string"
+                },
+                "unread": {
+                    "type": "integer"
+                }
+            }
+        },
+        "booking.DeclineInput": {
+            "type": "object",
+            "required": [
+                "reason"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "booking.Detail": {
+            "type": "object",
+            "properties": {
+                "booking_type": {
+                    "type": "string"
+                },
+                "cancelled_at": {
+                    "type": "string"
+                },
+                "charged_travellers": {
+                    "type": "integer"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "company": {
+                    "$ref": "#/definitions/booking.CompanyContact"
+                },
+                "confirmed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "decline_reason": {
+                    "type": "string"
+                },
+                "declined_at": {
+                    "type": "string"
+                },
+                "details_submitted_at": {
+                    "description": "traveller details given; nil = still needed",
+                    "type": "string"
+                },
+                "expired_at": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "description": "confirm-by deadline while pending",
+                    "type": "string"
+                },
+                "group": {
+                    "type": "integer"
+                },
+                "min_travellers": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "package": {
+                    "$ref": "#/definitions/booking.PackageRef"
+                },
+                "pax": {
+                    "type": "integer"
+                },
+                "preferred_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pricing": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/booking.Status"
+                },
+                "total_price": {
+                    "type": "number"
+                },
+                "tour_operator": {
+                    "$ref": "#/definitions/booking.Ref"
+                },
+                "traveler": {
+                    "$ref": "#/definitions/booking.TravelerRef"
+                },
+                "travellers": {
+                    "description": "names, age groups, nationalities; no ID numbers",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/booking.TravellerResponse"
+                    }
+                },
+                "trip": {
+                    "$ref": "#/definitions/tourpackage.Response"
+                },
+                "unit_price": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "booking.DetailsInput": {
+            "type": "object",
+            "properties": {
+                "lead": {
+                    "$ref": "#/definitions/booking.LeadInput"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/booking.MemberInput"
+                    }
+                },
+                "preferred_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "special_requests": {
+                    "type": "string"
+                }
+            }
+        },
+        "booking.DetailsResponse": {
+            "type": "object",
+            "properties": {
+                "booking_uuid": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "editable": {
+                    "type": "boolean"
+                },
+                "pax": {
+                    "type": "integer"
+                },
+                "preferred_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "special_requests": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/booking.Status"
+                },
+                "submitted_at": {
+                    "type": "string"
+                },
+                "travellers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/booking.TravellerResponse"
+                    }
+                }
+            }
+        },
+        "booking.DocumentInfo": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "uploaded_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "booking.LeadInput": {
+            "type": "object",
+            "properties": {
+                "age_group_uuid": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id_expiry": {
+                    "description": "YYYY-MM-DD",
+                    "type": "string"
+                },
+                "id_number": {
+                    "type": "string"
+                },
+                "id_type": {
+                    "type": "string"
+                },
+                "nationality": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "booking.MemberInput": {
+            "type": "object",
+            "properties": {
+                "age_group_uuid": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "nationality": {
+                    "type": "string"
+                }
+            }
+        },
+        "booking.MessageInput": {
+            "type": "object",
+            "required": [
+                "body"
+            ],
+            "properties": {
+                "body": {
+                    "type": "string"
+                }
+            }
+        },
+        "booking.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "booking_uuid": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "from_company": {
+                    "type": "boolean"
+                },
+                "read_at": {
+                    "type": "string"
+                },
+                "sender_name": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
         "booking.PackageRef": {
             "type": "object",
             "properties": {
@@ -6790,6 +7957,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "decline_reason": {
+                    "type": "string"
+                },
+                "declined_at": {
+                    "type": "string"
+                },
+                "details_submitted_at": {
+                    "description": "traveller details given; nil = still needed",
+                    "type": "string"
+                },
+                "expired_at": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "description": "confirm-by deadline while pending",
                     "type": "string"
                 },
                 "group": {
@@ -6874,14 +8058,69 @@ const docTemplate = `{
                 "pending",
                 "confirmed",
                 "completed",
-                "cancelled"
+                "cancelled",
+                "declined",
+                "expired"
+            ],
+            "x-enum-comments": {
+                "StatusDeclined": "the company turned the request down",
+                "StatusExpired": "not confirmed before its deadline"
+            },
+            "x-enum-descriptions": [
+                "",
+                "",
+                "",
+                "",
+                "the company turned the request down",
+                "not confirmed before its deadline"
             ],
             "x-enum-varnames": [
                 "StatusPending",
                 "StatusConfirmed",
                 "StatusCompleted",
-                "StatusCancelled"
+                "StatusCancelled",
+                "StatusDeclined",
+                "StatusExpired"
             ]
+        },
+        "booking.ThreadResponse": {
+            "type": "object",
+            "properties": {
+                "booking_uuid": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "is_company": {
+                    "description": "the viewer answers for the company",
+                    "type": "boolean"
+                },
+                "last_message": {
+                    "$ref": "#/definitions/booking.MessageResponse"
+                },
+                "message_count": {
+                    "type": "integer"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/booking.Status"
+                },
+                "traveler": {
+                    "type": "string"
+                },
+                "trip_name": {
+                    "type": "string"
+                },
+                "unread": {
+                    "type": "integer"
+                }
+            }
         },
         "booking.TravelerInput": {
             "type": "object",
@@ -6916,6 +8155,55 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "booking.TravellerResponse": {
+            "type": "object",
+            "properties": {
+                "age_group": {
+                    "type": "string"
+                },
+                "age_group_uuid": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id_deleted_at": {
+                    "type": "string"
+                },
+                "id_document": {
+                    "description": "nil when none (or deleted)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/booking.DocumentInfo"
+                        }
+                    ]
+                },
+                "id_expiry": {
+                    "type": "string"
+                },
+                "id_number": {
+                    "type": "string"
+                },
+                "id_type": {
+                    "type": "string"
+                },
+                "is_lead": {
+                    "type": "boolean"
+                },
+                "nationality": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 },
                 "uuid": {
@@ -7835,6 +9123,55 @@ const docTemplate = `{
                 },
                 "uuid": {
                     "type": "string"
+                }
+            }
+        },
+        "setting.Response": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "max": {
+                    "type": "integer"
+                },
+                "min": {
+                    "type": "integer"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "setting.UpdateInput": {
+            "type": "object",
+            "required": [
+                "values"
+            ],
+            "properties": {
+                "values": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
                 }
             }
         },
