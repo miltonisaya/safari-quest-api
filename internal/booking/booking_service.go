@@ -75,25 +75,30 @@ type TravelerRef struct {
 }
 
 type Response struct {
-	UUID              uuid.UUID   `json:"uuid"`
-	Code              string      `json:"code"`
-	Package           PackageRef  `json:"package"`
-	TourOperator      Ref         `json:"tour_operator"`
-	Traveler          TravelerRef `json:"traveler"`
-	Pax               int         `json:"pax"`
-	BookingType       string      `json:"booking_type"`
-	Group             int         `json:"group"`
-	Pricing           string      `json:"pricing"`
-	MinTravellers     int         `json:"min_travellers"`
-	ChargedTravellers int         `json:"charged_travellers"`
-	UnitPrice         float64     `json:"unit_price"`
-	TotalPrice        float64     `json:"total_price"`
-	Status            Status      `json:"status"`
-	Notes             *string     `json:"notes"`
-	ConfirmedAt       *time.Time  `json:"confirmed_at"`
-	CancelledAt       *time.Time  `json:"cancelled_at"`
-	CreatedAt         time.Time   `json:"created_at"`
-	UpdatedAt         time.Time   `json:"updated_at"`
+	UUID               uuid.UUID   `json:"uuid"`
+	Code               string      `json:"code"`
+	Package            PackageRef  `json:"package"`
+	TourOperator       Ref         `json:"tour_operator"`
+	Traveler           TravelerRef `json:"traveler"`
+	Pax                int         `json:"pax"`
+	BookingType        string      `json:"booking_type"`
+	Group              int         `json:"group"`
+	Pricing            string      `json:"pricing"`
+	MinTravellers      int         `json:"min_travellers"`
+	ChargedTravellers  int         `json:"charged_travellers"`
+	UnitPrice          float64     `json:"unit_price"`
+	TotalPrice         float64     `json:"total_price"`
+	Status             Status      `json:"status"`
+	Notes              *string     `json:"notes"`
+	ConfirmedAt        *time.Time  `json:"confirmed_at"`
+	CancelledAt        *time.Time  `json:"cancelled_at"`
+	DeclineReason      *string     `json:"decline_reason"`
+	DeclinedAt         *time.Time  `json:"declined_at"`
+	ExpiresAt          *time.Time  `json:"expires_at"` // confirm-by deadline while pending
+	ExpiredAt          *time.Time  `json:"expired_at"`
+	DetailsSubmittedAt *time.Time  `json:"details_submitted_at"` // traveller details given; nil = still needed
+	CreatedAt          time.Time   `json:"created_at"`
+	UpdatedAt          time.Time   `json:"updated_at"`
 }
 
 // BookableResponse is a package a traveler can still book.
@@ -141,22 +146,27 @@ func ToResponse(b Booking) Response {
 			EndDate:     b.Package.EndDate.Format("2006-01-02"),
 			PackageType: b.Package.PackageType,
 		},
-		TourOperator:      Ref{UUID: b.TourOperator.UUID, Name: b.TourOperator.Name, Code: b.TourOperator.Code},
-		Traveler:          travelerRef(b.User),
-		Pax:               b.Pax,
-		BookingType:       b.BookingType,
-		Group:             b.UnitNumber,
-		Pricing:           b.Pricing,
-		MinTravellers:     b.MinTravellers,
-		ChargedTravellers: b.ChargedTravellers,
-		UnitPrice:         b.UnitPrice,
-		TotalPrice:        b.TotalPrice,
-		Status:            b.Status,
-		Notes:             b.Notes,
-		ConfirmedAt:       b.ConfirmedAt,
-		CancelledAt:       b.CancelledAt,
-		CreatedAt:         b.CreatedAt,
-		UpdatedAt:         b.UpdatedAt,
+		TourOperator:       Ref{UUID: b.TourOperator.UUID, Name: b.TourOperator.Name, Code: b.TourOperator.Code},
+		Traveler:           travelerRef(b.User),
+		Pax:                b.Pax,
+		BookingType:        b.BookingType,
+		Group:              b.UnitNumber,
+		Pricing:            b.Pricing,
+		MinTravellers:      b.MinTravellers,
+		ChargedTravellers:  b.ChargedTravellers,
+		UnitPrice:          b.UnitPrice,
+		TotalPrice:         b.TotalPrice,
+		Status:             b.Status,
+		Notes:              b.Notes,
+		ConfirmedAt:        b.ConfirmedAt,
+		CancelledAt:        b.CancelledAt,
+		DeclineReason:      b.DeclineReason,
+		DeclinedAt:         b.DeclinedAt,
+		ExpiresAt:          b.ExpiresAt,
+		ExpiredAt:          b.ExpiredAt,
+		DetailsSubmittedAt: b.DetailsSubmittedAt,
+		CreatedAt:          b.CreatedAt,
+		UpdatedAt:          b.UpdatedAt,
 	}
 }
 
@@ -206,12 +216,25 @@ func applyStatus(b *Booking, next Status) error {
 	if next == StatusCancelled && b.CancelledAt == nil {
 		b.CancelledAt = &now
 	}
+	if next == StatusDeclined && b.DeclinedAt == nil {
+		b.DeclinedAt = &now
+	}
+	if next == StatusExpired && b.ExpiredAt == nil {
+		b.ExpiredAt = &now
+	}
 	b.Status = next
 	return nil
 }
 
+// publish tells the booking's traveler, its company's staff and
+// administrators about a change. Bookings hold personal data, so they are
+// never broadcast to everyone connected.
 func publish(action ws.Action, resp Response) {
-	ws.GlobalHub.Publish(ws.Event{Entity: "booking", Action: action, Payload: resp})
+	users, err := participants(resp.UUID)
+	if err != nil {
+		return
+	}
+	ws.GlobalHub.PublishTo(users, ws.Event{Entity: "booking", Action: action, Payload: resp})
 }
 
 // create builds and stores a new booking for traveler on the package.
@@ -248,11 +271,15 @@ func create(pkg tourpackage.Package, traveler user.User, requestedType string, p
 		TotalPrice:        q.Total,
 		Status:            StatusPending,
 		Notes:             notes,
+		ExpiresAt:         confirmDeadline(time.Now()),
 	}
 	if status != "" && status != StatusPending {
 		if err := applyStatus(&b, status); err != nil {
 			return Response{}, err
 		}
+	}
+	if b.Status != StatusPending {
+		b.ExpiresAt = nil // recorded as confirmed straight away
 	}
 	if err := Insert(&b); err != nil {
 		return Response{}, err
@@ -263,6 +290,7 @@ func create(pkg tourpackage.Package, traveler user.User, requestedType string, p
 	}
 	resp := ToResponse(saved)
 	publish(ws.ActionCreated, resp)
+	notifyCreated(saved)
 	return resp, nil
 }
 
@@ -335,12 +363,22 @@ func Update(id uuid.UUID, input UpdateInput, scope companyscope.Scope) (Response
 		// Re-price with the booking's own copy of the pricing, not today's package price.
 		q := reprice(Quote{Pricing: b.Pricing, UnitPrice: b.UnitPrice, MinTravellers: b.MinTravellers}, input.Pax)
 		b.Pax = input.Pax
+		// The member list no longer matches: the traveler must update it.
+		b.DetailsSubmittedAt = nil
 		b.ChargedTravellers = q.ChargedTravellers
 		b.TotalPrice = q.Total
 	}
 	b.Notes = input.Notes
+	// Declining needs a reason and expiry is automatic: use their own actions.
+	if input.Status == StatusDeclined || input.Status == StatusExpired {
+		return Response{}, ErrInvalidStatus
+	}
+	previous := b.Status
 	if err := applyStatus(&b, input.Status); err != nil {
 		return Response{}, err
+	}
+	if b.Status != StatusPending {
+		b.ExpiresAt = nil
 	}
 	if err := Save(&b); err != nil {
 		return Response{}, err
@@ -351,6 +389,9 @@ func Update(id uuid.UUID, input UpdateInput, scope companyscope.Scope) (Response
 	}
 	resp := ToResponse(saved)
 	publish(ws.ActionUpdated, resp)
+	if saved.Status != previous {
+		notifyStatus(saved, false)
+	}
 	return resp, nil
 }
 
@@ -504,5 +545,6 @@ func CancelMine(travelerUUID, bookingUUID uuid.UUID) (Response, error) {
 	}
 	resp := ToResponse(saved)
 	publish(ws.ActionUpdated, resp)
+	notifyStatus(saved, true)
 	return resp, nil
 }
