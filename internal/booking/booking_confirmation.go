@@ -52,7 +52,7 @@ func pendingFor(id uuid.UUID, scope companyscope.Scope) (Booking, error) {
 }
 
 func saveAndAnnounce(b *Booking, byTraveler bool) (Response, error) {
-	if err := Save(b); err != nil {
+	if err := Save(b, mailsStatus(byTraveler)); err != nil {
 		return Response{}, err
 	}
 	saved, err := FindByUUID(b.UUID)
@@ -61,7 +61,6 @@ func saveAndAnnounce(b *Booking, byTraveler bool) (Response, error) {
 	}
 	resp := ToResponse(saved)
 	publish(ws.ActionUpdated, resp)
-	notifyStatus(saved, byTraveler)
 	return resp, nil
 }
 
