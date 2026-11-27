@@ -123,6 +123,8 @@ func ensureFeatureMenus() {
 	ensureLink(menuIDByChildRoute("/users"), "File Resource Types", "/file-resource-types", "folder_open", "/file-resource-types", 50)
 	ensureTourOperatorMenu()
 	ensureBookingMenus()
+	// Administrators only: the link needs system-setting_get, which only they hold.
+	ensureLink(menuIDByChildRoute("/users"), "System Settings", "/system-settings", "tune", "/system-settings", 90)
 }
 
 // ensureBookingMenus adds the top-level Bookings (company staff) and
