@@ -21,6 +21,18 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 		staff.DELETE("/:uuid", controller.Delete)
 	}
 	rg.GET("/travelers", controller.Travelers)
+	// Kept outside /bookings so their permissions don't grant the whole bookings resource.
+	rg.POST("/booking-confirmations/:uuid", controller.Confirm)
+	rg.POST("/booking-declines/:uuid", controller.Decline)
+	// Traveller details and the lead's ID copy (travelers write, the company reads).
+	rg.GET("/booking-travellers/:uuid", controller.TravellerDetails)
+	rg.PUT("/booking-travellers/:uuid", controller.SaveTravellerDetails)
+	rg.POST("/booking-traveller-ids/:uuid", controller.UploadTravellerID)
+	rg.GET("/booking-traveller-ids/:uuid", controller.DownloadTravellerID)
+	// Chat between a booking's traveler and the trip's company.
+	rg.GET("/booking-messages/:uuid", controller.Conversation)
+	rg.POST("/booking-messages/:uuid", controller.SendMessage)
+	rg.GET("/message-threads", controller.Threads)
 
 	rg.GET("/bookable-packages", controller.Bookable)
 	rg.GET("/bookable-packages/:uuid", controller.BookableDetail)
@@ -28,6 +40,7 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	{
 		mine.GET("", controller.Mine)
 		mine.POST("", controller.Book)
+		mine.GET("/:uuid", controller.MineDetail)
 		mine.DELETE("/:uuid", controller.Cancel)
 	}
 }
