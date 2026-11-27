@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"time"
@@ -25,9 +26,10 @@ var upgrader = websocket.Upgrader{
 // Client represents a single connected WebSocket session. send is a buffered
 // channel of outbound messages; the writePump drains it to the socket.
 type Client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
+	hub    *Hub
+	conn   *websocket.Conn
+	send   chan []byte
+	userID uuid.UUID // the signed-in user, for PublishTo
 }
 
 // readPump keeps the connection alive by handling pongs and detecting closes.
@@ -91,7 +93,7 @@ func (c *Client) writePump() {
 
 // ServeWS upgrades the HTTP connection to WebSocket, registers the client with
 // the hub, and starts its read and write pumps.
-func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request, userID uuid.UUID) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("[ws] upgrade error: %v", err)
@@ -99,9 +101,10 @@ func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
-		hub:  hub,
-		conn: conn,
-		send: make(chan []byte, 256),
+		hub:    hub,
+		conn:   conn,
+		send:   make(chan []byte, 256),
+		userID: userID,
 	}
 	hub.register <- client
 
