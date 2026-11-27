@@ -15,9 +15,9 @@ const (
 // Action describes what happened. Payload carries the response DTO so the
 // client can update its local state without issuing a follow-up GET.
 type Event struct {
-	Entity  string  `json:"entity"`
-	Action  Action  `json:"action"`
-	Payload any     `json:"payload"`
+	Entity  string `json:"entity"`
+	Action  Action `json:"action"`
+	Payload any    `json:"payload"`
 }
 
 func (e Event) Marshal() ([]byte, error) {
