@@ -1,0 +1,25 @@
+# Local services for development: `docker compose up -d`
+#   RabbitMQ  amqp://guest:guest@localhost:5672/   management UI http://localhost:15672 (guest / guest)
+#   Mailpit   SMTP localhost:1025                   inbox UI      http://localhost:8025
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: safari-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  # Catches every email the app sends so nothing reaches real inboxes locally.
+  mailpit:
+    image: axllent/mailpit:v1.21
+    container_name: safari-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  rabbitmq-data:
