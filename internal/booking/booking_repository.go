@@ -2,6 +2,8 @@ package booking
 
 import (
 	"errors"
+	"safari-quest-api/pkg/dbtypes"
+	"strings"
 	"time"
 
 	"safari-quest-api/database"
@@ -149,7 +151,7 @@ func saveChecked(b *Booking, create bool) error {
 				return ErrNotEnoughSeats
 			}
 		}
-		omit := []string{"Package", "TourOperator", "User"}
+		omit := []string{"Package", "TourOperator", "User", "Travellers"}
 		if create {
 			return tx.Omit(omit...).Create(b).Error
 		}
@@ -247,6 +249,217 @@ func AvailabilityFor(packages []tourpackage.Package) (map[uint]Availability, err
 	}
 	for _, p := range packages {
 		out[p.ID] = availabilityOf(p, usageOf(rows, p.ID))
+	}
+	return out, nil
+}
+
+// findOverdue lists pending bookings whose confirm-by time is at or before now.
+func findOverdue(now time.Time) ([]Booking, error) {
+	var items []Booking
+	err := withRelations(database.GORM_DB).
+		Where("status = ? AND expires_at IS NOT NULL AND expires_at <= ?", StatusPending, now).
+		Order("expires_at").Find(&items).Error
+	return items, err
+}
+
+// staffEmails lists the active staff of a company, for booking notifications.
+func staffEmails(operatorID uint) ([]string, error) {
+	var emails []string
+	err := database.GORM_DB.Table("users").
+		Joins("JOIN tour_operator_users tou ON tou.user_id = users.id").
+		Where("tou.tour_operator_id = ? AND users.is_active = ? AND users.deleted_at IS NULL", operatorID, true).
+		Pluck("users.email", &emails).Error
+	return emails, err
+}
+
+// ── Traveller details ──────────────────────────────────────────────────────
+
+func travellersOf(bookingID uint) ([]Traveller, error) {
+	var rows []Traveller
+	err := database.GORM_DB.Where("booking_id = ?", bookingID).Order("position").Find(&rows).Error
+	return rows, err
+}
+
+func leadOf(bookingID uint) (Traveller, error) {
+	var t Traveller
+	err := database.GORM_DB.Where("booking_id = ? AND is_lead", bookingID).Take(&t).Error
+	return t, err
+}
+
+// replaceTravellers swaps the booking's travellers for rows in one
+// transaction. The lead row is updated in place so an uploaded ID copy stays.
+func replaceTravellers(bookingID uint, rows []Traveller, langs dbtypes.StringList, requests *string, at time.Time) error {
+	return database.GORM_DB.Transaction(func(tx *gorm.DB) error {
+		var lead Traveller
+		hasLead := tx.Where("booking_id = ? AND is_lead", bookingID).Take(&lead).Error == nil
+		if err := tx.Where("booking_id = ? AND NOT is_lead", bookingID).Delete(&Traveller{}).Error; err != nil {
+			return err
+		}
+		for i := range rows {
+			r := rows[i]
+			r.BookingID = bookingID
+			if r.IsLead && hasLead {
+				r.ID, r.UUID, r.CreatedAt = lead.ID, lead.UUID, lead.CreatedAt
+				r.IDDocumentPath, r.IDDocumentName, r.IDDocumentType = lead.IDDocumentPath, lead.IDDocumentName, lead.IDDocumentType
+				r.IDUploadedAt, r.IDDeletedAt = lead.IDUploadedAt, lead.IDDeletedAt
+				if err := tx.Save(&r).Error; err != nil {
+					return err
+				}
+				continue
+			}
+			r.UUID = uuid.New()
+			if err := tx.Create(&r).Error; err != nil {
+				return err
+			}
+		}
+		return tx.Model(&Booking{}).Where("id = ?", bookingID).Updates(map[string]any{
+			"preferred_languages": langs, "special_requests": requests, "details_submitted_at": at,
+		}).Error
+	})
+}
+
+func setDocument(travellerID uint, path, name, kind *string, at time.Time) error {
+	return database.GORM_DB.Model(&Traveller{}).Where("id = ?", travellerID).Updates(map[string]any{
+		"id_document_path": path, "id_document_name": name, "id_document_type": kind,
+		"id_uploaded_at": at, "id_deleted_at": nil,
+	}).Error
+}
+
+func clearDocument(travellerID uint, at time.Time) error {
+	return database.GORM_DB.Model(&Traveller{}).Where("id = ?", travellerID).Updates(map[string]any{
+		"id_document_path": nil, "id_document_name": nil, "id_document_type": nil, "id_deleted_at": at,
+	}).Error
+}
+
+// idsEndedBefore finds ID copies on trips that ended before cutoff, including
+// soft-deleted bookings, whose files must go too.
+func idsEndedBefore(cutoff time.Time) ([]Traveller, error) {
+	var rows []Traveller
+	err := database.GORM_DB.Raw(`
+		SELECT bt.* FROM booking_travellers bt
+		JOIN bookings b ON b.id = bt.booking_id
+		JOIN packages p ON p.id = b.package_id
+		WHERE bt.id_document_path IS NOT NULL AND p.end_date < ?`, cutoff.Format("2006-01-02")).Scan(&rows).Error
+	return rows, err
+}
+
+// ── Chat ────────────────────────────────────────────────────────────────────
+
+// participants lists who may follow a booking live: its traveler, the active
+// staff of the trip's company and administrators.
+func participants(bookingUUID uuid.UUID) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
+	err := database.GORM_DB.Raw(`
+		SELECT u.uuid FROM bookings b JOIN users u ON u.id = b.user_id WHERE b.uuid = ?
+		UNION
+		SELECT u.uuid FROM bookings b
+		JOIN packages p ON p.id = b.package_id
+		JOIN tour_operator_users tou ON tou.tour_operator_id = p.operator_id
+		JOIN users u ON u.id = tou.user_id
+		WHERE b.uuid = ? AND u.is_active AND u.deleted_at IS NULL
+		UNION
+		SELECT u.uuid FROM users u
+		JOIN user_roles ur ON ur.user_id = u.id
+		JOIN roles r ON r.id = ur.role_id
+		WHERE r.code = 'ADMINISTRATOR' AND u.is_active AND u.deleted_at IS NULL`, bookingUUID, bookingUUID).Scan(&ids).Error
+	return ids, err
+}
+
+func insertMessage(m *Message) error { return database.GORM_DB.Create(m).Error }
+
+// markRead marks messages sent by one side as read, returning how many changed.
+func markRead(bookingID uint, fromCompany bool, at time.Time) (int64, error) {
+	res := database.GORM_DB.Model(&Message{}).
+		Where("booking_id = ? AND from_company = ? AND read_at IS NULL", bookingID, fromCompany).
+		Update("read_at", at)
+	return res.RowsAffected, res.Error
+}
+
+// messagesOf returns a booking's messages, oldest first, with sender names.
+func messagesOf(bookingID uint) ([]Message, map[uint]string, error) {
+	var msgs []Message
+	if err := database.GORM_DB.Where("booking_id = ?", bookingID).Order("created_at, id").Find(&msgs).Error; err != nil {
+		return nil, nil, err
+	}
+	ids := []uint{}
+	for _, m := range msgs {
+		if m.SenderID != nil {
+			ids = append(ids, *m.SenderID)
+		}
+	}
+	names := map[uint]string{}
+	if len(ids) > 0 {
+		var rows []struct {
+			ID        uint
+			FirstName string
+			LastName  string
+		}
+		if err := database.GORM_DB.Table("users").Select("id, first_name, last_name").Where("id IN ?", ids).Scan(&rows).Error; err != nil {
+			return nil, nil, err
+		}
+		for _, r := range rows {
+			names[r.ID] = strings.TrimSpace(r.FirstName + " " + r.LastName)
+		}
+	}
+	return msgs, names, nil
+}
+
+type threadRow struct {
+	Booking    Booking
+	Last       Message
+	LastSender string
+	Unread     int
+	Count      int
+}
+
+// threadsFor lists bookings with messages that the viewer takes part in: as
+// the traveler, or as staff of the trip's company (administrators: all).
+func threadsFor(v Viewer) ([]threadRow, error) {
+	var stats []struct {
+		BookingID uint
+		Count     int
+		Unread    int
+		LastID    uint
+	}
+	var traveler struct{ ID uint }
+	if err := database.GORM_DB.Table("users").Select("id").Where("uuid = ?", v.UserUUID).Scan(&traveler).Error; err != nil {
+		return nil, err
+	}
+	q := database.GORM_DB.Table("booking_messages m").
+		Joins("JOIN bookings b ON b.id = m.booking_id AND b.deleted_at IS NULL").
+		Joins("JOIN packages p ON p.id = b.package_id").
+		Select(`m.booking_id,
+			COUNT(*) AS count,
+			COUNT(*) FILTER (WHERE m.read_at IS NULL AND m.from_company = (b.user_id = ?)) AS unread,
+			MAX(m.id) AS last_id`, traveler.ID).
+		Group("m.booking_id")
+	switch {
+	case v.Scope.Admin:
+	case len(v.Scope.OperatorIDs) > 0:
+		q = q.Where("b.user_id = ? OR p.operator_id IN ?", traveler.ID, v.Scope.OperatorIDs)
+	default:
+		q = q.Where("b.user_id = ?", traveler.ID)
+	}
+	if err := q.Order("last_id DESC").Limit(100).Scan(&stats).Error; err != nil {
+		return nil, err
+	}
+	out := make([]threadRow, 0, len(stats))
+	for _, st := range stats {
+		var b Booking
+		if err := withRelations(database.GORM_DB).First(&b, st.BookingID).Error; err != nil {
+			continue
+		}
+		var last Message
+		if err := database.GORM_DB.First(&last, st.LastID).Error; err != nil {
+			continue
+		}
+		sender := "SafariQuest"
+		if last.SenderID != nil {
+			var u struct{ FirstName, LastName string }
+			database.GORM_DB.Table("users").Select("first_name, last_name").Where("id = ?", *last.SenderID).Scan(&u)
+			sender = strings.TrimSpace(u.FirstName + " " + u.LastName)
+		}
+		out = append(out, threadRow{Booking: b, Last: last, LastSender: sender, Unread: st.Unread, Count: st.Count})
 	}
 	return out, nil
 }
