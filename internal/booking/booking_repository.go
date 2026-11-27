@@ -2,6 +2,7 @@ package booking
 
 import (
 	"errors"
+	"safari-quest-api/internal/email"
 	"safari-quest-api/pkg/dbtypes"
 	"strings"
 	"time"
@@ -127,8 +128,9 @@ func usageOf(rows []groupRow, packageID uint) usage {
 
 // saveChecked writes the booking inside a transaction that locks the package
 // row, so concurrent bookings cannot oversell it. Seats are checked only when
-// the booking holds seats after the change.
-func saveChecked(b *Booking, create bool) error {
+// the booking holds seats after the change. The emails mails returns are
+// queued in the same transaction (nil: none).
+func saveChecked(b *Booking, create bool, mails mailFn) error {
 	return database.GORM_DB.Transaction(func(tx *gorm.DB) error {
 		var pkg tourpackage.Package
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&pkg, b.PackageID).Error; err != nil {
@@ -152,16 +154,30 @@ func saveChecked(b *Booking, create bool) error {
 			}
 		}
 		omit := []string{"Package", "TourOperator", "User", "Travellers"}
+		write := tx.Omit(omit...).Save
 		if create {
-			return tx.Omit(omit...).Create(b).Error
+			write = tx.Omit(omit...).Create
 		}
-		return tx.Omit(omit...).Save(b).Error
+		if err := write(b).Error; err != nil {
+			return err
+		}
+		if mails == nil {
+			return nil
+		}
+		drafts, err := mails(tx, b)
+		if err != nil {
+			return err
+		}
+		return email.Enqueue(tx, drafts...)
 	})
 }
 
-func Insert(b *Booking) error { return saveChecked(b, true) }
+// Insert creates a booking. b.Package, b.User and b.TourOperator must be set
+// when mails needs them.
+func Insert(b *Booking, mails mailFn) error { return saveChecked(b, true, mails) }
 
-func Save(b *Booking) error { return saveChecked(b, false) }
+// Save updates a booking loaded with its relations.
+func Save(b *Booking, mails mailFn) error { return saveChecked(b, false, mails) }
 
 func Remove(id uuid.UUID) error {
 	return database.GORM_DB.Where("uuid = ?", id).Delete(&Booking{}).Error
