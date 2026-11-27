@@ -3,3 +3,4 @@ tmp/
 *.log
 .idea/
 uploads/
+private_uploads/
