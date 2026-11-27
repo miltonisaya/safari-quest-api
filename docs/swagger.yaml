@@ -57,6 +57,44 @@ definitions:
     - password
     - token
     type: object
+  agegroup.Input:
+    properties:
+      max_age:
+        type: integer
+      min_age:
+        maximum: 120
+        minimum: 0
+        type: integer
+      name:
+        maxLength: 60
+        type: string
+      uuid:
+        type: string
+    required:
+    - name
+    type: object
+  agegroup.ReplaceInput:
+    properties:
+      groups:
+        items:
+          $ref: '#/definitions/agegroup.Input'
+        maxItems: 20
+        minItems: 1
+        type: array
+    required:
+    - groups
+    type: object
+  agegroup.Response:
+    properties:
+      max_age:
+        type: integer
+      min_age:
+        type: integer
+      name:
+        type: string
+      uuid:
+        type: string
+    type: object
   attraction.Input:
     properties:
       attraction_category_uuid:
@@ -399,6 +437,222 @@ definitions:
       uuid:
         type: string
     type: object
+  booking.CompanyContact:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      website:
+        type: string
+    type: object
+  booking.ConversationResponse:
+    properties:
+      booking_uuid:
+        type: string
+      code:
+        type: string
+      company:
+        type: string
+      is_company:
+        description: the viewer answers for the company
+        type: boolean
+      last_message:
+        $ref: '#/definitions/booking.MessageResponse'
+      message_count:
+        type: integer
+      messages:
+        items:
+          $ref: '#/definitions/booking.MessageResponse'
+        type: array
+      start_date:
+        type: string
+      status:
+        $ref: '#/definitions/booking.Status'
+      traveler:
+        type: string
+      trip_name:
+        type: string
+      unread:
+        type: integer
+    type: object
+  booking.DeclineInput:
+    properties:
+      reason:
+        type: string
+    required:
+    - reason
+    type: object
+  booking.Detail:
+    properties:
+      booking_type:
+        type: string
+      cancelled_at:
+        type: string
+      charged_travellers:
+        type: integer
+      code:
+        type: string
+      company:
+        $ref: '#/definitions/booking.CompanyContact'
+      confirmed_at:
+        type: string
+      created_at:
+        type: string
+      decline_reason:
+        type: string
+      declined_at:
+        type: string
+      details_submitted_at:
+        description: traveller details given; nil = still needed
+        type: string
+      expired_at:
+        type: string
+      expires_at:
+        description: confirm-by deadline while pending
+        type: string
+      group:
+        type: integer
+      min_travellers:
+        type: integer
+      notes:
+        type: string
+      package:
+        $ref: '#/definitions/booking.PackageRef'
+      pax:
+        type: integer
+      preferred_languages:
+        items:
+          type: string
+        type: array
+      pricing:
+        type: string
+      status:
+        $ref: '#/definitions/booking.Status'
+      total_price:
+        type: number
+      tour_operator:
+        $ref: '#/definitions/booking.Ref'
+      traveler:
+        $ref: '#/definitions/booking.TravelerRef'
+      travellers:
+        description: names, age groups, nationalities; no ID numbers
+        items:
+          $ref: '#/definitions/booking.TravellerResponse'
+        type: array
+      trip:
+        $ref: '#/definitions/tourpackage.Response'
+      unit_price:
+        type: number
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  booking.DetailsInput:
+    properties:
+      lead:
+        $ref: '#/definitions/booking.LeadInput'
+      members:
+        items:
+          $ref: '#/definitions/booking.MemberInput'
+        type: array
+      preferred_languages:
+        items:
+          type: string
+        type: array
+      special_requests:
+        type: string
+    type: object
+  booking.DetailsResponse:
+    properties:
+      booking_uuid:
+        type: string
+      code:
+        type: string
+      editable:
+        type: boolean
+      pax:
+        type: integer
+      preferred_languages:
+        items:
+          type: string
+        type: array
+      special_requests:
+        type: string
+      status:
+        $ref: '#/definitions/booking.Status'
+      submitted_at:
+        type: string
+      travellers:
+        items:
+          $ref: '#/definitions/booking.TravellerResponse'
+        type: array
+    type: object
+  booking.DocumentInfo:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      uploaded_at:
+        type: string
+    type: object
+  booking.LeadInput:
+    properties:
+      age_group_uuid:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id_expiry:
+        description: YYYY-MM-DD
+        type: string
+      id_number:
+        type: string
+      id_type:
+        type: string
+      nationality:
+        type: string
+      phone:
+        type: string
+    type: object
+  booking.MemberInput:
+    properties:
+      age_group_uuid:
+        type: string
+      full_name:
+        type: string
+      nationality:
+        type: string
+    type: object
+  booking.MessageInput:
+    properties:
+      body:
+        type: string
+    required:
+    - body
+    type: object
+  booking.MessageResponse:
+    properties:
+      body:
+        type: string
+      booking_uuid:
+        type: string
+      created_at:
+        type: string
+      from_company:
+        type: boolean
+      read_at:
+        type: string
+      sender_name:
+        type: string
+      uuid:
+        type: string
+    type: object
   booking.PackageRef:
     properties:
       end_date:
@@ -434,6 +688,18 @@ definitions:
       confirmed_at:
         type: string
       created_at:
+        type: string
+      decline_reason:
+        type: string
+      declined_at:
+        type: string
+      details_submitted_at:
+        description: traveller details given; nil = still needed
+        type: string
+      expired_at:
+        type: string
+      expires_at:
+        description: confirm-by deadline while pending
         type: string
       group:
         type: integer
@@ -491,12 +757,52 @@ definitions:
     - confirmed
     - completed
     - cancelled
+    - declined
+    - expired
     type: string
+    x-enum-comments:
+      StatusDeclined: the company turned the request down
+      StatusExpired: not confirmed before its deadline
+    x-enum-descriptions:
+    - ""
+    - ""
+    - ""
+    - ""
+    - the company turned the request down
+    - not confirmed before its deadline
     x-enum-varnames:
     - StatusPending
     - StatusConfirmed
     - StatusCompleted
     - StatusCancelled
+    - StatusDeclined
+    - StatusExpired
+  booking.ThreadResponse:
+    properties:
+      booking_uuid:
+        type: string
+      code:
+        type: string
+      company:
+        type: string
+      is_company:
+        description: the viewer answers for the company
+        type: boolean
+      last_message:
+        $ref: '#/definitions/booking.MessageResponse'
+      message_count:
+        type: integer
+      start_date:
+        type: string
+      status:
+        $ref: '#/definitions/booking.Status'
+      traveler:
+        type: string
+      trip_name:
+        type: string
+      unread:
+        type: integer
+    type: object
   booking.TravelerInput:
     properties:
       booking_type:
@@ -520,6 +826,37 @@ definitions:
       mobile:
         type: string
       name:
+        type: string
+      uuid:
+        type: string
+    type: object
+  booking.TravellerResponse:
+    properties:
+      age_group:
+        type: string
+      age_group_uuid:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id_deleted_at:
+        type: string
+      id_document:
+        allOf:
+        - $ref: '#/definitions/booking.DocumentInfo'
+        description: nil when none (or deleted)
+      id_expiry:
+        type: string
+      id_number:
+        type: string
+      id_type:
+        type: string
+      is_lead:
+        type: boolean
+      nationality:
+        type: string
+      phone:
         type: string
       uuid:
         type: string
@@ -1134,6 +1471,38 @@ definitions:
       uuid:
         type: string
     type: object
+  setting.Response:
+    properties:
+      default:
+        type: integer
+      description:
+        type: string
+      group:
+        type: string
+      key:
+        type: string
+      label:
+        type: string
+      max:
+        type: integer
+      min:
+        type: integer
+      unit:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: integer
+    type: object
+  setting.UpdateInput:
+    properties:
+      values:
+        additionalProperties:
+          type: integer
+        type: object
+    required:
+    - values
+    type: object
   touroperator.GeographyRef:
     properties:
       code:
@@ -1544,6 +1913,47 @@ definitions:
 info:
   contact: {}
 paths:
+  /age-groups:
+    put:
+      consumes:
+      - application/json
+      description: Saves the whole list at once. Groups must start at 0 and run without
+        gaps or overlaps, with only the oldest open-ended. Groups used by upcoming
+        bookings can't be removed.
+      parameters:
+      - description: All age groups
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/agegroup.ReplaceInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/agegroup.Response'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Replace the age groups
+      tags:
+      - Age groups
   /attraction-categories:
     get:
       description: Return a paginated, searchable, and sortable list of attraction
@@ -2402,6 +2812,308 @@ paths:
       summary: Package details for travelers
       tags:
       - My Bookings
+  /booking-confirmations/{uuid}:
+    post:
+      description: Accepts a pending booking on one of your company's packages; the
+        traveler is emailed.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.Response'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Confirm a pending booking
+      tags:
+      - Bookings
+  /booking-declines/{uuid}:
+    post:
+      consumes:
+      - application/json
+      description: Turns a pending booking down with a reason the traveler sees, and
+        frees its seats.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Reason
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/booking.DeclineInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.Response'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Decline a pending booking
+      tags:
+      - Bookings
+  /booking-messages/{uuid}:
+    get:
+      description: Messages between the booking's traveler and the trip's company,
+        oldest first. Opening it marks the other side's messages as read.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.ConversationResponse'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: A booking's chat
+      tags:
+      - Messages
+    post:
+      consumes:
+      - application/json
+      description: Delivered live over the WebSocket to the traveler and the company's
+        staff.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Message
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/booking.MessageInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.MessageResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Send a message about a booking
+      tags:
+      - Messages
+  /booking-traveller-ids/{uuid}:
+    get:
+      description: For the booking's traveler or the trip's company only.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Download the group leader's ID copy
+      tags:
+      - Traveller details
+    post:
+      consumes:
+      - multipart/form-data
+      description: A photo (JPG, PNG, WebP) or PDF of the lead traveller's passport
+        or national ID, up to 10 MB. Stored privately and deleted automatically after
+        the trip.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: ID copy
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.DetailsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload the group leader's ID
+      tags:
+      - Traveller details
+  /booking-travellers/{uuid}:
+    get:
+      description: The lead traveller, group members, preferred languages and special
+        requests. For the booking's traveler or the trip's company.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.DetailsResponse'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: A booking's traveller details
+      tags:
+      - Traveller details
+    put:
+      consumes:
+      - application/json
+      description: Replaces the lead traveller's details, the group members (one per
+        extra traveller), preferred languages and special requests. Allowed until
+        the trip starts while the booking is pending or confirmed.
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Traveller details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/booking.DetailsInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.DetailsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Save traveller details for my booking
+      tags:
+      - Traveller details
   /bookings:
     get:
       description: Bookings for the caller's companies (all companies for administrators)
@@ -2645,6 +3357,27 @@ paths:
       summary: Update booking
       tags:
       - Bookings
+  /catalog/age-groups:
+    get:
+      description: 'The age bands travellers are put in, youngest first. Public: the
+        booking form needs them.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/agegroup.Response'
+                  type: array
+              type: object
+      summary: List age groups
+      tags:
+      - Age groups
   /catalog/packages:
     get:
       description: Upcoming packages for the website, with rating, photo and seats
@@ -3772,6 +4505,29 @@ paths:
       summary: Update menu
       tags:
       - Menus
+  /message-threads:
+    get:
+      description: Bookings with messages that you take part in, newest first, with
+        unread counts (for the bell).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/booking.ThreadResponse'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: My conversations
+      tags:
+      - Messages
   /my-bookings:
     get:
       description: The signed-in traveler's own bookings
@@ -3901,6 +4657,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Cancel my booking
+      tags:
+      - My Bookings
+    get:
+      description: The booking with its trip details, travellers and the company's
+        contacts, for the confirmation voucher. Add ?format=pdf for a print-ready
+        PDF (confirmed or completed bookings only).
+      parameters:
+      - description: Booking UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/booking.Detail'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: One of my bookings in full
       tags:
       - My Bookings
   /my-reviews:
@@ -4677,6 +5468,64 @@ paths:
       summary: Update role authorities
       tags:
       - Roles
+  /system-settings:
+    get:
+      description: Every setting with its description, allowed range, default and
+        current value.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/setting.Response'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: List system settings
+      tags:
+      - System settings
+    put:
+      consumes:
+      - application/json
+      description: Saves the given values after checking each against its allowed
+        range; nothing is saved if one is invalid.
+      parameters:
+      - description: Values by key
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/setting.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.CustomApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/setting.Response'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CustomApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Change system settings
+      tags:
+      - System settings
   /tour-operators:
     get:
       description: Return a paginated, searchable, and sortable list of tour operators
