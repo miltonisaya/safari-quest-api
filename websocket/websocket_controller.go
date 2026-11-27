@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type Controller struct{}
@@ -17,5 +18,8 @@ type Controller struct{}
 //	@Failure		401		{object}	response.CustomApiResponse
 //	@Router			/ws [get]
 func (controller Controller) Connect(c *gin.Context) {
-	ServeWS(GlobalHub, c.Writer, c.Request)
+	// Auth() has validated the token and stored the user.
+	userID, _ := c.Get("userUUID")
+	id, _ := userID.(uuid.UUID)
+	ServeWS(GlobalHub, c.Writer, c.Request, id)
 }
