@@ -28,6 +28,11 @@ type config struct {
 	SMTPUsername string
 	SMTPPassword string
 	MailFrom     string
+	// AMQPURL is the RabbitMQ server the email queue uses.
+	AMQPURL string
+	// EmailWorkerInline also runs the email worker inside the API process
+	// (handy locally); in production run `safari-quest-api worker` instead.
+	EmailWorkerInline bool
 }
 
 var App config
@@ -56,6 +61,8 @@ func Load() {
 		SMTPUsername:         getEnv("SMTP_USERNAME", ""),
 		SMTPPassword:         getEnv("SMTP_PASSWORD", ""),
 		MailFrom:             getEnv("MAIL_FROM", "SafariQuest <no-reply@safariquest.com>"),
+		AMQPURL:              getEnv("AMQP_URL", "amqp://guest:guest@localhost:5672/"),
+		EmailWorkerInline:    getEnv("EMAIL_WORKER_INLINE", "false") == "true",
 	}
 }
 
