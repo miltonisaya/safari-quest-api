@@ -16,6 +16,8 @@ var travelerCodes = []string{
 	"menu_get",
 	"bookable-package_get",
 	"my-booking_get", "my-booking_post", "my-booking_delete",
+	"booking-traveller_get", "booking-traveller_put", "booking-traveller-id_post", "booking-traveller-id_get",
+	"booking-message_get", "booking-message_post", "message-thread_get",
 	"package-review_get",
 	"my-review_get", "my-review_post", "my-review_put", "my-review_delete",
 }
