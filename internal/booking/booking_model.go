@@ -1,6 +1,7 @@
 package booking
 
 import (
+	"safari-quest-api/pkg/dbtypes"
 	"time"
 
 	"safari-quest-api/internal/touroperator"
@@ -19,6 +20,8 @@ const (
 	StatusConfirmed Status = "confirmed"
 	StatusCompleted Status = "completed"
 	StatusCancelled Status = "cancelled"
+	StatusDeclined  Status = "declined" // the company turned the request down
+	StatusExpired   Status = "expired"  // not confirmed before its deadline
 )
 
 // Booking is a traveler's reservation of seats on a sale package. Trip dates
@@ -38,18 +41,27 @@ type Booking struct {
 	BookingType    string                    `gorm:"type:varchar(10);not null;default:shared" json:"-"` // shared or private
 	UnitNumber     int                       `gorm:"not null;default:1" json:"-"`                       // which group (1…package units)
 	// Pricing copied from the package when booked (see Quote).
-	Pricing           string         `gorm:"type:varchar(12);not null;default:per_person" json:"-"`
-	MinTravellers     int            `gorm:"not null;default:1" json:"-"`
-	ChargedTravellers int            `gorm:"not null;default:1" json:"-"`
-	UnitPrice         float64        `gorm:"type:numeric(12,2);not null" json:"-"`
-	TotalPrice        float64        `gorm:"type:numeric(12,2);not null" json:"-"`
-	Status            Status         `gorm:"type:varchar(20);not null;default:pending" json:"-"`
-	Notes             *string        `gorm:"type:text" json:"-"`
-	ConfirmedAt       *time.Time     `json:"-"`
-	CancelledAt       *time.Time     `json:"-"`
-	CreatedAt         time.Time      `json:"-"`
-	UpdatedAt         time.Time      `json:"-"`
-	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
+	Pricing           string     `gorm:"type:varchar(12);not null;default:per_person" json:"-"`
+	MinTravellers     int        `gorm:"not null;default:1" json:"-"`
+	ChargedTravellers int        `gorm:"not null;default:1" json:"-"`
+	UnitPrice         float64    `gorm:"type:numeric(12,2);not null" json:"-"`
+	TotalPrice        float64    `gorm:"type:numeric(12,2);not null" json:"-"`
+	Status            Status     `gorm:"type:varchar(20);not null;default:pending" json:"-"`
+	Notes             *string    `gorm:"type:text" json:"-"`
+	ConfirmedAt       *time.Time `json:"-"`
+	CancelledAt       *time.Time `json:"-"`
+	DeclineReason     *string    `gorm:"type:text" json:"-"`
+	DeclinedAt        *time.Time `json:"-"`
+	ExpiresAt         *time.Time `json:"-"` // a pending booking not confirmed by then expires; nil = never
+	ExpiredAt         *time.Time `json:"-"`
+	// Traveller details, filled in by the traveler before the company confirms.
+	PreferredLanguages dbtypes.StringList `gorm:"type:jsonb;not null;default:'[]'" json:"-"`
+	SpecialRequests    *string            `gorm:"type:text" json:"-"`
+	DetailsSubmittedAt *time.Time         `json:"-"`
+	Travellers         []Traveller        `gorm:"foreignKey:BookingID" json:"-"`
+	CreatedAt          time.Time          `json:"-"`
+	UpdatedAt          time.Time          `json:"-"`
+	DeletedAt          gorm.DeletedAt     `gorm:"index" json:"-"`
 }
 
 func (b *Booking) BeforeCreate(tx *gorm.DB) error {
@@ -73,7 +85,7 @@ func (s Status) CanMoveTo(next Status) bool {
 	}
 	switch s {
 	case StatusPending:
-		return next == StatusConfirmed || next == StatusCancelled
+		return next == StatusConfirmed || next == StatusCancelled || next == StatusDeclined || next == StatusExpired
 	case StatusConfirmed:
 		return next == StatusCompleted || next == StatusCancelled
 	default:
@@ -84,7 +96,7 @@ func (s Status) CanMoveTo(next Status) bool {
 // ValidStatus reports whether s is one of the known statuses.
 func ValidStatus(s Status) bool {
 	switch s {
-	case StatusPending, StatusConfirmed, StatusCompleted, StatusCancelled:
+	case StatusPending, StatusConfirmed, StatusCompleted, StatusCancelled, StatusDeclined, StatusExpired:
 		return true
 	}
 	return false
