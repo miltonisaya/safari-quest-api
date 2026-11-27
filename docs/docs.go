@@ -1091,7 +1091,7 @@ const docTemplate = `{
         },
         "/auth/forgot-password": {
             "post": {
-                "description": "Emails a one-hour reset link if the address belongs to an active account. Always answers the same way, so it does not reveal who has an account.",
+                "description": "Emails a 6-digit code (valid 10 minutes) through the email queue if the address belongs to an active account. Always answers the same way, so it does not reveal who has an account.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1101,7 +1101,7 @@ const docTemplate = `{
                 "tags": [
                     "Account"
                 ],
-                "summary": "Request a password reset link",
+                "summary": "Request a password reset code",
                 "parameters": [
                     {
                         "description": "Account email",
@@ -1268,10 +1268,10 @@ const docTemplate = `{
                 "tags": [
                     "Account"
                 ],
-                "summary": "Set a new password from a reset link",
+                "summary": "Set a new password with an emailed code",
                 "parameters": [
                     {
-                        "description": "Token from the emailed link and the new password",
+                        "description": "Email, the 6-digit code and the new password",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -7000,18 +7000,23 @@ const docTemplate = `{
         "account.ResetInput": {
             "type": "object",
             "required": [
-                "password",
-                "token"
+                "code",
+                "email",
+                "password"
             ],
             "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 12
+                },
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
                 "password": {
                     "description": "bcrypt reads at most 72 bytes",
                     "type": "string",
                     "maxLength": 72
-                },
-                "token": {
-                    "type": "string",
-                    "maxLength": 200
                 }
             }
         },
